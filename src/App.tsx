@@ -32,7 +32,9 @@ import {
   Download,
   Upload,
   Cloud,
-  CloudOff
+  CloudOff,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   isSupabaseConfigured, 
@@ -398,42 +400,44 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Navegação por Abas */}
-          <nav className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-            <button
-              onClick={() => setActiveTab('pyramid')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'pyramid'
-                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <Trophy className="w-4 h-4" />
-              Pirâmide Geral
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'history'
-                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <Swords className="w-4 h-4" />
-              Desafios ({challenges.filter(c => c.status === 'pending').length} Pendentes)
-            </button>
-            <button
-              onClick={() => setActiveTab('players')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === 'players'
-                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              Atletas ({players.length})
-            </button>
-          </nav>
+          {/* Navegação por Abas (Exibida Apenas se Autenticado) */}
+          {currentUser && (
+            <nav className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+              <button
+                onClick={() => setActiveTab('pyramid')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === 'pyramid'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Trophy className="w-4 h-4" />
+                Pirâmide Geral
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === 'history'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Swords className="w-4 h-4" />
+                Desafios ({challenges.filter(c => c.status === 'pending').length} Pendentes)
+              </button>
+              <button
+                onClick={() => setActiveTab('players')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === 'players'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                Atletas ({players.length})
+              </button>
+            </nav>
+          )}
 
           {/* Ações Rápidas & Perfil do Usuário */}
           <div className="flex items-center gap-3">
@@ -495,28 +499,26 @@ export const App: React.FC = () => {
             ) : (
               <button
                 onClick={() => setIsLoginModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-orange-400 border border-orange-500/30 text-xs font-bold transition-all flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-orange-400 border border-orange-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shadow"
               >
                 <LogIn className="w-4 h-4" />
                 Entrar / Login
               </button>
             )}
 
-            {/* Novo Desafio */}
-            <button
-              onClick={() => {
-                if (!currentUser) {
-                  setIsLoginModalOpen(true);
-                  return;
-                }
-                setPreselectedChallenger(currentUser.role === 'athlete' ? currentUser : null);
-                setIsNewChallengeModalOpen(true);
-              }}
-              className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Desafio
-            </button>
+            {/* Novo Desafio (Somente se autenticado) */}
+            {currentUser && (
+              <button
+                onClick={() => {
+                  setPreselectedChallenger(currentUser.role === 'athlete' ? currentUser : null);
+                  setIsNewChallengeModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Desafio
+              </button>
+            )}
 
             {/* Regulamento */}
             <button
@@ -591,160 +593,184 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* CONTEÚDO PRINCIPAL DA PÁGINA */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center gap-8">
-        {/* Banner de Status do Período de 3 Meses / Premiação */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 text-amber-400">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Fim da Liga (3 Meses)</span>
-              <p className="text-sm font-bold text-white">{countdown.daysLeft} dias restantes ({countdown.formattedEndDate})</p>
-            </div>
-          </div>
-
-          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="p-3 bg-orange-500/10 rounded-xl border border-orange-500/30 text-orange-400">
-              <Award className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Líder Atual da Liga</span>
-              <p className="text-sm font-bold text-orange-400">
-                {players.find(p => p.rank === 1)?.name || 'Sem Atleta'} (Nível 1)
-              </p>
-            </div>
-          </div>
-
-          <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/30 text-blue-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Atletas Cadastrados</span>
-              <p className="text-sm font-bold text-white">{players.length} Atletas em {Math.max(...players.map(p => p.level))} Níveis</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Renderização da Aba Ativa */}
-        {activeTab === 'pyramid' && (
-          <PyramidView
-            players={players}
-            challenges={challenges}
-            currentWeek={settings.currentWeek}
-            onSelectPlayerToChallenge={(player) => {
-              setPreselectedChallenger(player);
-              setIsNewChallengeModalOpen(true);
-            }}
-            onSelectChallengeToResolve={(challenge) => {
-              setSelectedChallengeToResolve(challenge);
-              setIsMatchResultModalOpen(true);
-            }}
-            onOpenPlayerDetails={(player) => {
-              setSelectedPlayerToEdit(player);
-              setIsEditPlayerModalOpen(true);
-            }}
-          />
-        )}
-
-        {activeTab === 'history' && (
-          <MatchHistory
-            challenges={challenges}
-            onSelectChallengeToResolve={(challenge) => {
-              setSelectedChallengeToResolve(challenge);
-              setIsMatchResultModalOpen(true);
-            }}
-          />
-        )}
-
-        {activeTab === 'players' && (
-          <div className="w-full max-w-5xl glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="text-xl font-bold text-white">Quadro de Atletas Ranqueados</h3>
-                <p className="text-xs text-slate-400">Lista ordenada por rank e nível atual na liga</p>
+        {/* CONTEÚDO PRINCIPAL DA PÁGINA */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center justify-center">
+          {!currentUser ? (
+            /* BARREIRA DE AUTENTICAÇÃO - NENHUM DADO EXIBIDO SEM AUTENTICAÇÃO */
+            <div className="w-full max-w-md my-auto py-10 animate-fadeIn flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-2xl bg-orange-600/10 border-2 border-orange-500/30 flex items-center justify-center text-orange-400 mb-6 shadow-xl shadow-orange-600/10">
+                <Lock className="w-10 h-10" />
               </div>
+
+              <h2 className="text-2xl font-extrabold text-white mb-2">Acesso Restrito aos Atletas</h2>
+              <p className="text-xs sm:text-sm text-slate-400 mb-8 max-w-sm leading-relaxed">
+                Para visualizar a pirâmide de posições, histórico de confrontos e lista de atletas da liga, faça login com seu telefone e senha.
+              </p>
+
               <button
-                onClick={() => setIsPlayerModalOpen(true)}
-                className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="w-full py-4 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2.5 transform hover:-translate-y-0.5"
               >
-                <Plus className="w-4 h-4" /> Cadastrar Atleta
+                <LogIn className="w-5 h-5" />
+                Entrar no Sistema da Liga
               </button>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th className="p-3">Rank</th>
-                    <th className="p-3">Nível</th>
-                    <th className="p-3">Atleta</th>
-                    <th className="p-3">Telefone</th>
-                    <th className="p-3">Vitórias</th>
-                    <th className="p-3">Derrotas</th>
-                    <th className="p-3">Aproveitamento</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Ação</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {players.map((p) => {
-                    const totalGames = p.wins + p.losses;
-                    const winRate = totalGames > 0 ? Math.round((p.wins / totalGames) * 100) : 0;
-
-                    return (
-                      <tr key={p.id} className="hover:bg-slate-900/60 transition-colors">
-                        <td className="p-3 font-bold text-orange-400">#{p.rank}</td>
-                        <td className="p-3 font-semibold text-slate-400">Nível {p.level}</td>
-                        <td className="p-3 font-bold text-white flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold">
-                            {p.name.substring(0, 2).toUpperCase()}
-                          </div>
-                          {p.name}
-                        </td>
-                        <td className="p-3 text-slate-400 font-mono">{p.phone ? formatPhoneDisplay(p.phone) : 'Não informado'}</td>
-                        <td className="p-3 text-orange-400 font-bold">{p.wins}</td>
-                        <td className="p-3 text-rose-400 font-bold">{p.losses}</td>
-                        <td className="p-3 font-semibold">{winRate}%</td>
-                        <td className="p-3">
-                          {p.status === 'cooldown' ? (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] border border-rose-500/30">
-                              Suspenso (2 sem)
-                            </span>
-                          ) : p.status === 'injured' ? (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] border border-amber-500/30">
-                              Lesionado
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-[10px] border border-orange-500/30">
-                              Ativo
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => {
-                              setSelectedPlayerToEdit(p);
-                              setIsEditPlayerModalOpen(true);
-                            }}
-                            className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors inline-flex items-center gap-1 text-xs"
-                            title="Editar Atleta"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                            <span>Editar</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="mt-8 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 max-w-sm text-left flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-200 block mb-0.5">Segurança dos Dados:</span>
+                  Todas as estatísticas, rankings e contatos da liga são visíveis exclusivamente para atletas autenticados.
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-      </main>
+          ) : (
+            /* DADOS DA LIGA (EXIBIDOS EXCLUSIVAMENTE APÓS AUTENTICAÇÃO) */
+            <>
+              {/* Banner de Status do Período de 3 Meses / Premiação */}
+              <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                  <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 text-amber-400">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Fim da Liga (3 Meses)</span>
+                    <p className="text-sm font-bold text-white">{countdown.daysLeft} dias restantes ({countdown.formattedEndDate})</p>
+                  </div>
+                </div>
+
+                <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                  <div className="p-3 bg-orange-500/10 rounded-xl border border-orange-500/30 text-orange-400">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Líder Atual da Liga</span>
+                    <p className="text-sm font-bold text-orange-400">
+                      {players.find(p => p.rank === 1)?.name || 'Sem Atleta'} (Nível 1)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                  <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/30 text-blue-400">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Atletas Cadastrados</span>
+                    <p className="text-sm font-bold text-white">{players.length} Atletas em {players.length > 0 ? Math.max(...players.map(p => p.level)) : 1} Níveis</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Renderização da Aba Ativa */}
+              {activeTab === 'pyramid' && (
+                <PyramidView
+                  players={players}
+                  challenges={challenges}
+                  currentWeek={settings.currentWeek}
+                  onSelectPlayerToChallenge={(player) => {
+                    setPreselectedChallenger(player);
+                    setIsNewChallengeModalOpen(true);
+                  }}
+                  onSelectChallengeToResolve={(challenge) => {
+                    setSelectedChallengeToResolve(challenge);
+                    setIsMatchResultModalOpen(true);
+                  }}
+                  onOpenPlayerDetails={(player) => {
+                    setSelectedPlayerToEdit(player);
+                    setIsEditPlayerModalOpen(true);
+                  }}
+                />
+              )}
+
+              {activeTab === 'history' && (
+                <MatchHistory
+                  challenges={challenges}
+                  onSelectChallengeToResolve={(challenge) => {
+                    setSelectedChallengeToResolve(challenge);
+                    setIsMatchResultModalOpen(true);
+                  }}
+                />
+              )}
+
+              {activeTab === 'players' && (
+                <div className="w-full max-w-5xl glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Quadro de Atletas Ranqueados</h3>
+                      <p className="text-xs text-slate-400">Lista ordenada por rank e nível atual na liga</p>
+                    </div>
+                    <button
+                      onClick={() => setIsPlayerModalOpen(true)}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" /> Cadastrar Atleta
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-300">
+                      <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider">
+                        <tr>
+                          <th className="p-3">Rank</th>
+                          <th className="p-3">Nível</th>
+                          <th className="p-3">Atleta</th>
+                          <th className="p-3">Telefone</th>
+                          <th className="p-3">Vitórias</th>
+                          <th className="p-3">Derrotas</th>
+                          <th className="p-3">Aproveitamento</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60">
+                        {players.map((p) => {
+                          const totalGames = p.wins + p.losses;
+                          const winRate = totalGames > 0 ? Math.round((p.wins / totalGames) * 100) : 0;
+
+                          return (
+                            <tr key={p.id} className="hover:bg-slate-900/60 transition-colors">
+                              <td className="p-3 font-bold text-orange-400">#{p.rank}</td>
+                              <td className="p-3 font-bold text-slate-100">Nível {p.level}</td>
+                              <td className="p-3 font-medium text-white">{p.name}</td>
+                              <td className="p-3 font-mono">{p.phone ? formatPhoneDisplay(p.phone) : '—'}</td>
+                              <td className="p-3 text-emerald-400 font-bold">{p.wins}</td>
+                              <td className="p-3 text-rose-400 font-bold">{p.losses}</td>
+                              <td className="p-3 font-bold">{winRate}%</td>
+                              <td className="p-3">
+                                {p.status === 'cooldown' ? (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                    Suspenso (Cooldown)
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                    Ativo
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  onClick={() => {
+                                    setSelectedPlayerToEdit(p);
+                                    setIsEditPlayerModalOpen(true);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors inline-flex items-center gap-1 text-xs"
+                                  title="Editar Atleta"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>Editar</span>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </main>
 
       {/* FOOTER */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
