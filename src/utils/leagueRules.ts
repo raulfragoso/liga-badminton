@@ -294,8 +294,12 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
  * Regra Principal: Número de jogos ganhos (Vitórias).
  * Critério de Desempate: Saldo de pontos ganhos acumulados (pontosScored - pontosConceded).
  */
-export function getLeagueLeader(players: Player[]): Player | null {
-  const activeList = players.filter(p => p.status === 'active');
+export function getLeagueLeader(players: Player[], challenges: Challenge[] = []): Player | null {
+  const computedPlayers = (challenges && challenges.length > 0)
+    ? recalculatePlayerStats(players, challenges)
+    : players;
+
+  const activeList = computedPlayers.filter(p => p.status === 'active');
   if (activeList.length === 0) return null;
 
   const sorted = [...activeList].sort((a, b) => {

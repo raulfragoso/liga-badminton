@@ -117,13 +117,15 @@ export const App: React.FC = () => {
       fetchChallengesFromSupabase(),
       fetchSettingsFromSupabase()
     ]).then(([cloudPlayers, cloudChallenges, cloudSettings]) => {
-      if (cloudPlayers !== null && cloudPlayers.length > 0) {
-        setPlayers(cloudPlayers);
-        localStorage.setItem('badminton_players', JSON.stringify(cloudPlayers));
-      }
+      const loadedChallenges = (cloudChallenges !== null && cloudChallenges.length > 0) ? cloudChallenges : [];
       if (cloudChallenges !== null && cloudChallenges.length > 0) {
         setChallenges(cloudChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
+      }
+      if (cloudPlayers !== null && cloudPlayers.length > 0) {
+        const recalculated = recalculatePlayerStats(cloudPlayers, loadedChallenges);
+        setPlayers(recalculated);
+        localStorage.setItem('badminton_players', JSON.stringify(recalculated));
       }
       if (cloudSettings !== null) {
         setSettings(cloudSettings);
@@ -663,7 +665,7 @@ export const App: React.FC = () => {
                     <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Líder Atual da Liga</span>
                     <p className="text-sm font-bold text-orange-400">
                       {(() => {
-                        const leader = getLeagueLeader(players);
+                        const leader = getLeagueLeader(players, challenges);
                         if (!leader) return 'Sem Atleta Cadastrado';
                         const pointDiff = (leader.pointDiff !== undefined) ? leader.pointDiff : ((leader.pointsScored || 0) - (leader.pointsConceded || 0));
                         const diffStr = pointDiff >= 0 ? `+${pointDiff}` : `${pointDiff}`;
