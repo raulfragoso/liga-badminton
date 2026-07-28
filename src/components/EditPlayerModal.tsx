@@ -7,6 +7,7 @@ interface EditPlayerModalProps {
   isOpen: boolean;
   onClose: () => void;
   player: Player | null;
+  currentUser?: Player | null;
   onSavePlayer: (updatedPlayer: Player) => void;
   onDeletePlayer?: (playerId: string) => void;
 }
@@ -15,9 +16,11 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
   isOpen,
   onClose,
   player,
+  currentUser,
   onSavePlayer,
   onDeletePlayer,
 }) => {
+  const isAdmin = currentUser?.role === 'admin';
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -114,6 +117,13 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+          {!isAdmin && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-blue-400 shrink-0" />
+              <span>Você está editando o seu próprio perfil. Alterações em Nível, Rank e Status só podem ser realizadas por um Administrador da Liga.</span>
+            </div>
+          )}
+
           {/* Nome Completo */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -152,9 +162,10 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
                 Tipo de Usuário
               </label>
               <select
+                disabled={!isAdmin}
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
+                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 <option value="athlete">Atleta Participante</option>
                 <option value="admin">👑 Administrador</option>
@@ -166,15 +177,16 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Trophy className="w-3.5 h-3.5 text-orange-400" />
-              Nível na Pirâmide
+              Nível na Pirâmide {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Somente Admin)</span>}
             </label>
             <input
               type="number"
               min="1"
               max="20"
+              disabled={!isAdmin}
               value={level}
               onChange={(e) => setLevel(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold"
+              className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
           </div>
 
@@ -207,28 +219,30 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-orange-400" />
-                Vitórias
+                Vitórias {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Automático)</span>}
               </label>
               <input
                 type="number"
                 min="0"
+                disabled={!isAdmin}
                 value={wins}
                 onChange={(e) => setWins(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold"
+                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <X className="w-3.5 h-3.5 text-rose-400" />
-                Derrotas
+                Derrotas {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Automático)</span>}
               </label>
               <input
                 type="number"
                 min="0"
+                disabled={!isAdmin}
                 value={losses}
                 onChange={(e) => setLosses(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold"
+                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
             </div>
           </div>
@@ -236,39 +250,42 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
           {/* Status do Atleta */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Status Atual na Liga
+              Status Atual na Liga {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Somente Admin)</span>}
             </label>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <button
                 type="button"
+                disabled={!isAdmin}
                 onClick={() => setStatus('active')}
                 className={`p-2.5 rounded-xl border text-center font-medium transition-all ${
                   status === 'active'
                     ? 'bg-orange-600/20 border-orange-500 text-orange-300'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
-                }`}
+                } ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 ✅ Ativo
               </button>
               <button
                 type="button"
+                disabled={!isAdmin}
                 onClick={() => setStatus('cooldown')}
                 className={`p-2.5 rounded-xl border text-center font-medium transition-all ${
                   status === 'cooldown'
                     ? 'bg-rose-600/20 border-rose-500 text-rose-300'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
-                }`}
+                } ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 ⛔ Suspenso
               </button>
               <button
                 type="button"
+                disabled={!isAdmin}
                 onClick={() => setStatus('injured')}
                 className={`p-2.5 rounded-xl border text-center font-medium transition-all ${
                   status === 'injured'
                     ? 'bg-amber-600/20 border-amber-500 text-amber-300'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
-                }`}
+                } ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 🩹 Lesionado
               </button>
@@ -288,6 +305,7 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
                 </label>
                 <input
                   type="date"
+                  disabled={!isAdmin}
                   value={cooldownUntil}
                   onChange={(e) => setCooldownUntil(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-rose-500"
@@ -299,6 +317,7 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
                 </label>
                 <input
                   type="text"
+                  disabled={!isAdmin}
                   placeholder="Ex: Derrota para desafiado de nível superior"
                   value={cooldownReason}
                   onChange={(e) => setCooldownReason(e.target.value)}
@@ -310,14 +329,14 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
 
           {/* Botões de Ação */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-800 shrink-0">
-            {onDeletePlayer ? (
+            {isAdmin && onDeletePlayer ? (
               <button
                 type="button"
                 onClick={handleDelete}
                 className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5"
               >
                 <Trash2 className="w-4 h-4" />
-                Excluir
+                Excluir Atleta
               </button>
             ) : <div />}
 

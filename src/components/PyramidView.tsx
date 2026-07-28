@@ -7,6 +7,7 @@ interface PyramidViewProps {
   players: Player[];
   challenges: Challenge[];
   currentWeek: number;
+  currentUser?: Player | null;
   onSelectPlayerToChallenge?: (player: Player) => void;
   onSelectChallengeToResolve?: (challenge: Challenge) => void;
   onOpenPlayerDetails?: (player: Player) => void;
@@ -16,6 +17,7 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
   players,
   challenges,
   currentWeek,
+  currentUser,
   onSelectPlayerToChallenge,
   onSelectChallengeToResolve,
   onOpenPlayerDetails,
@@ -208,13 +210,15 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                             Desafiar
                           </button>
                         )}
-                        <button
-                          onClick={() => onOpenPlayerDetails?.(player)}
-                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors"
-                          title="Editar Dados do Atleta"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        {(currentUser?.role === 'admin' || currentUser?.id === player.id) && (
+                          <button
+                            onClick={() => onOpenPlayerDetails?.(player)}
+                            className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors"
+                            title={currentUser?.id === player.id ? "Editar Meu Perfil" : "Editar Dados do Atleta (Admin)"}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );

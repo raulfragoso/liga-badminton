@@ -667,6 +667,7 @@ export const App: React.FC = () => {
                   players={players}
                   challenges={challenges}
                   currentWeek={settings.currentWeek}
+                  currentUser={currentUser}
                   onSelectPlayerToChallenge={(player) => {
                     setPreselectedChallenger(player);
                     setIsNewChallengeModalOpen(true);
@@ -699,12 +700,14 @@ export const App: React.FC = () => {
                       <h3 className="text-xl font-bold text-white">Quadro de Atletas Ranqueados</h3>
                       <p className="text-xs text-slate-400">Lista ordenada por rank e nível atual na liga</p>
                     </div>
-                    <button
-                      onClick={() => setIsPlayerModalOpen(true)}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5"
-                    >
-                      <Plus className="w-4 h-4" /> Cadastrar Atleta
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => setIsPlayerModalOpen(true)}
+                        className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5"
+                      >
+                        <Plus className="w-4 h-4" /> Cadastrar Atleta
+                      </button>
+                    )}
                   </div>
 
                   <div className="overflow-x-auto">
@@ -726,6 +729,7 @@ export const App: React.FC = () => {
                         {players.map((p) => {
                           const totalGames = p.wins + p.losses;
                           const winRate = totalGames > 0 ? Math.round((p.wins / totalGames) * 100) : 0;
+                          const canEditThisPlayer = isAdmin || currentUser?.id === p.id;
 
                           return (
                             <tr key={p.id} className="hover:bg-slate-900/60 transition-colors">
@@ -748,17 +752,21 @@ export const App: React.FC = () => {
                                 )}
                               </td>
                               <td className="p-3 text-right">
-                                <button
-                                  onClick={() => {
-                                    setSelectedPlayerToEdit(p);
-                                    setIsEditPlayerModalOpen(true);
-                                  }}
-                                  className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors inline-flex items-center gap-1 text-xs"
-                                  title="Editar Atleta"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                  <span>Editar</span>
-                                </button>
+                                {canEditThisPlayer ? (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedPlayerToEdit(p);
+                                      setIsEditPlayerModalOpen(true);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors inline-flex items-center gap-1 text-xs font-semibold"
+                                    title={isAdmin ? "Editar Atleta" : "Editar Meu Perfil"}
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    <span>{currentUser?.id === p.id ? "Meu Perfil" : "Editar"}</span>
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-slate-600 font-mono">—</span>
+                                )}
                               </td>
                             </tr>
                           );
@@ -828,6 +836,7 @@ export const App: React.FC = () => {
           setSelectedPlayerToEdit(null);
         }}
         player={selectedPlayerToEdit}
+        currentUser={currentUser}
         onSavePlayer={handleSavePlayer}
         onDeletePlayer={handleDeletePlayer}
       />
