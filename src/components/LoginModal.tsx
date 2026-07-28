@@ -50,8 +50,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const adminPlayer = players.find(p => p.role === 'admin') || players[0];
-  const athletePlayer = players.find(p => p.role === 'athlete') || players[1];
+  const adminPlayer = players.find(p => p.role === 'admin');
+  const athletePlayer = players.find(p => p.role === 'athlete');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
@@ -145,40 +145,44 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             Entrar e Autenticar
           </button>
 
-          {/* Atalhos para Testes / Demonstração */}
-          <div className="pt-4 border-t border-slate-800/80 space-y-2">
-            <span className="block text-[10px] font-semibold uppercase text-slate-400 tracking-wider text-center flex items-center justify-center gap-1">
-              <Sparkles className="w-3 h-3 text-orange-400" />
-              Atalhos de Teste com Validação Real
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin(adminPlayer)}
-                className="p-2.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/30 font-medium transition-all text-left flex items-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4 text-orange-400 shrink-0" />
-                <div>
-                  <div className="font-bold text-[11px]">Administrador</div>
-                  <div className="text-[10px] text-slate-400 truncate">{adminPlayer.name}</div>
-                </div>
-              </button>
+          {/* Atalhos para Testes / Demonstração (Somente se existirem atletas) */}
+          {(adminPlayer || athletePlayer) && (
+            <div className="pt-4 border-t border-slate-800/80 space-y-2">
+              <span className="block text-[10px] font-semibold uppercase text-slate-400 tracking-wider text-center flex items-center justify-center gap-1">
+                <Sparkles className="w-3 h-3 text-orange-400" />
+                Atalhos de Teste com Validação Real
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {adminPlayer && (
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin(adminPlayer)}
+                    className="p-2.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/30 font-medium transition-all text-left flex items-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-orange-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-[11px]">Administrador</div>
+                      <div className="text-[10px] text-slate-400 truncate">{adminPlayer.name}</div>
+                    </div>
+                  </button>
+                )}
 
-              {athletePlayer && (
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin(athletePlayer)}
-                  className="p-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium transition-all text-left flex items-center gap-2"
-                >
-                  <User className="w-4 h-4 text-blue-400 shrink-0" />
-                  <div>
-                    <div className="font-bold text-[11px]">Atleta</div>
-                    <div className="text-[10px] text-slate-400 truncate">{athletePlayer.name}</div>
-                  </div>
-                </button>
-              )}
+                {athletePlayer && (
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin(athletePlayer)}
+                    className="p-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium transition-all text-left flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4 text-blue-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-[11px]">Atleta</div>
+                      <div className="text-[10px] text-slate-400 truncate">{athletePlayer.name}</div>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </form>
       </div>
     </div>

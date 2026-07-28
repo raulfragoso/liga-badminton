@@ -88,11 +88,24 @@ export function validateAndAuthenticateUser(
   let foundPlayer: Player | undefined;
 
   if (isTargetingAdmin) {
-    // Buscar o jogador admin ou garantir o primeiro jogador como admin
+    // Buscar o jogador admin ou criar conta admin padrão caso o banco esteja limpo
     foundPlayer = players.find(p => p.role === 'admin') || players[0];
     if (foundPlayer) {
       foundPlayer.role = 'admin';
       if (!foundPlayer.password) foundPlayer.password = 'admin';
+    } else {
+      foundPlayer = {
+        id: 'admin-master',
+        name: 'Administrador da Liga',
+        rank: 1,
+        level: 1,
+        role: 'admin',
+        password: 'admin',
+        wins: 0,
+        losses: 0,
+        status: 'active',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
     }
   } else {
     // Buscar pelo telefone sanitizado

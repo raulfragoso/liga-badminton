@@ -82,13 +82,13 @@ export const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
   });
 
-  // Usuário Autenticado (Padrão: Gabriel Santos - Admin)
+  // Usuário Autenticado (Padrão: Nenhum usuário logado por padrão)
   const [currentUser, setCurrentUser] = useState<Player | null>(() => {
     const saved = localStorage.getItem('badminton_current_user');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { return null; }
     }
-    return INITIAL_PLAYERS[0]; // Gabriel Santos (Admin) por padrão
+    return null; // Nenhum usuário logado automaticamente ao abrir
   });
 
   const [activeTab, setActiveTab] = useState<'pyramid' | 'history' | 'players'>('pyramid');
