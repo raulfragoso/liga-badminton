@@ -10,14 +10,23 @@ export interface AuthResult {
  * Remove caracteres não numéricos de um telefone para armazenamento (retorna apenas dígitos).
  */
 export function sanitizePhone(phone: string = ''): string {
-  return phone.replace(/\D/g, '').slice(0, 11);
+  let digits = phone.replace(/\D/g, '');
+  // Remove código de país 55 (Brasil) se tiver 12 ou 13 dígitos
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+    digits = digits.slice(2);
+  }
+  // Se tiver mais de 11 dígitos por algum motivo, pega os últimos 11 (DDD + Número)
+  if (digits.length > 11) {
+    digits = digits.slice(-11);
+  }
+  return digits;
 }
 
 /**
  * Formata dinamicamente a entrada de telefone no formato visual (NN) NNNNN-NNNN.
  */
 export function formatPhoneMask(value: string = ''): string {
-  const digits = value.replace(/\D/g, '').slice(0, 11);
+  const digits = sanitizePhone(value);
   if (!digits) return '';
   if (digits.length <= 2) {
     return `(${digits}`;
@@ -42,7 +51,7 @@ export function formatPhoneDisplay(phone: string = ''): string {
  * Exemplo: "(11) 98765-4321" -> "4321"
  */
 export function getDefaultPasswordFromPhone(phone: string = ''): string {
-  const digits = sanitizePhone(phone);
+  const digits = phone.replace(/\D/g, '');
   if (digits.length >= 4) {
     return digits.slice(-4);
   }
@@ -130,18 +139,33 @@ export function validateAndAuthenticateUser(
       };
     }
   } else {
-    // Buscar pelo telefone sanitizado ou nome do atleta
-    const inputLower = trimmedInput.toLowerCase();
+    // Busca ultra flexível por telefone sanitizado, sufixo de 8 dígitos ou nome do atleta
+    const inputDigitsOnly = trimmedInput.replace(/\D/g, '');
+    const inputLast8 = inputDigitsOnly.length >= 8 ? inputDigitsOnly.slice(-8) : '';
+    const inputLower = trimmedInput.toLowerCase().trim();
+
     foundPlayer = players.find(p => {
       const playerCleanPhone = sanitizePhone(p.phone || '');
-      const playerNameLower = (p.name || '').toLowerCase();
+      const playerDigitsOnly = (p.phone || '').replace(/\D/g, '');
+      const playerLast8 = playerDigitsOnly.length >= 8 ? playerDigitsOnly.slice(-8) : '';
+      const playerNameLower = (p.name || '').toLowerCase().trim();
 
-      const matchesPhone = playerCleanPhone.length > 0 &&
-        (playerCleanPhone === cleanPhone || (cleanPhone.length >= 8 && playerCleanPhone.endsWith(cleanPhone)));
+      const matchesName = playerNameLower.length > 0 && inputLower.length >= 2 && (
+        playerNameLower === inputLower ||
+        playerNameLower.startsWith(inputLower) ||
+        inputLower.startsWith(playerNameLower)
+      );
 
-      const matchesName = playerNameLower === inputLower || playerNameLower.startsWith(inputLower);
+      const matchesPhone = (
+        (playerCleanPhone.length > 0 && cleanPhone.length > 0 && (
+          playerCleanPhone === cleanPhone ||
+          playerCleanPhone.endsWith(cleanPhone) ||
+          cleanPhone.endsWith(playerCleanPhone)
+        )) ||
+        (playerLast8.length >= 8 && inputLast8.length >= 8 && playerLast8 === inputLast8)
+      );
 
-      return matchesPhone || matchesName;
+      return matchesName || matchesPhone;
     });
   }
 
@@ -150,17 +174,20 @@ export function validateAndAuthenticateUser(
     return {
       success: false,
       user: null,
-      errorMessage: 'Nenhum usuário foi encontrado com este login, nome ou telefone.'
+      errorMessage: 'Nenhum usuário foi encontrado com este telefone ou nome. Verifique o número digitado.'
     };
   }
 
   const isAdminUser = foundPlayer.role === 'admin' || isTargetingAdmin;
 
-  // Validar a senha de acesso (tolerante a maiúsculas/minúsculas de teclados de celular)
+  // Validar a senha de acesso (aceita a senha do banco, os 4 últimos dígitos do telefone ou master)
   const enteredPassLower = enteredPassword.toLowerCase();
   const masterPassLower = masterAdminPassword.toLowerCase();
   const rawEnvPassLower = rawEnvPassword.toLowerCase();
   const playerPassLower = (foundPlayer.password || '').toLowerCase();
+
+  const playerPhoneDefaultPass = getDefaultPasswordFromPhone(foundPlayer.phone || '');
+  const inputPhoneDefaultPass = getDefaultPasswordFromPhone(trimmedInput);
 
   const isValidPassword =
     enteredPassword === masterAdminPassword ||
@@ -168,6 +195,8 @@ export function validateAndAuthenticateUser(
     (rawEnvPassword.length > 0 && (enteredPassword === rawEnvPassword || enteredPassLower === rawEnvPassLower)) ||
     enteredPassword === foundPlayer.password ||
     enteredPassLower === playerPassLower ||
+    (playerPhoneDefaultPass.length > 0 && (enteredPassword === playerPhoneDefaultPass || enteredPassLower === playerPhoneDefaultPass.toLowerCase())) ||
+    (inputPhoneDefaultPass.length > 0 && (enteredPassword === inputPhoneDefaultPass || enteredPassLower === inputPhoneDefaultPass.toLowerCase())) ||
     (isAdminUser && (enteredPassLower === 'm3t4bad' || enteredPassLower === 'admin'));
 
   // Log de depuração no console do navegador (F12) para diagnosticar Vercel env vars
