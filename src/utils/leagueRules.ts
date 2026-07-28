@@ -57,11 +57,14 @@ export function validateNewChallenge(
     return { valid: false, reason: 'Um atleta não pode desafiar a si mesmo.' };
   }
 
-  // 2. Verificar se o desafiante já realizou um desafio nesta semana
-  if (challenger.lastChallengeWeek === currentWeek) {
+  // 2. Verificar se o desafiante já possui um desafio nesta semana
+  const hasActiveChallengeThisWeek = challenges.some(
+    c => c.weekNumber === currentWeek && c.challengerId === challenger.id
+  );
+  if (hasActiveChallengeThisWeek) {
     return {
       valid: false,
-      reason: `${challenger.name} já realizou seu desafio semanal na Semana ${currentWeek}.`
+      reason: `${challenger.name} já possui um desafio registrado na Semana ${currentWeek}.`
     };
   }
 

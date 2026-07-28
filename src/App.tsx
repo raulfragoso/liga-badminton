@@ -357,13 +357,39 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteChallenge = (challengeId: string) => {
+    const challengeToDelete = challenges.find(c => c.id === challengeId);
     const updatedChallenges = challenges.filter(c => c.id !== challengeId);
+
     setChallenges(updatedChallenges);
     localStorage.setItem('badminton_challenges', JSON.stringify(updatedChallenges));
     deleteChallengeFromSupabase(challengeId);
+
+    // Se o desafio excluído pertencia ao desafiante na semana atual, restaura a disponibilidade do atleta
+    if (challengeToDelete) {
+      const challengerId = challengeToDelete.challengerId;
+      const hasOtherChallengeThisWeek = updatedChallenges.some(
+        c => c.weekNumber === settings.currentWeek && c.challengerId === challengerId
+      );
+
+      if (!hasOtherChallengeThisWeek) {
+        const updatedPlayers = players.map(p => {
+          if (p.id === challengerId) {
+            const updated = { ...p };
+            delete updated.lastChallengeWeek;
+            return updated;
+          }
+          return p;
+        });
+
+        setPlayers(updatedPlayers);
+        localStorage.setItem('badminton_players', JSON.stringify(updatedPlayers));
+        saveAllPlayersToSupabase(updatedPlayers);
+      }
+    }
+
     showToast(
       'Desafio Cancelado',
-      'O desafio pendente foi excluído com sucesso.',
+      'O desafio foi excluído e o desafiante está 100% liberado para realizar um novo desafio nesta semana!',
       'warning'
     );
   };

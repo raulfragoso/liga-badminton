@@ -40,8 +40,12 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
       }
     }
 
-    // Já desafiou nesta semana
-    if (player.lastChallengeWeek === currentWeek) {
+    // Já desafiou nesta semana (dinâmico via lista de desafios da semana)
+    const hasChallengeThisWeek = challenges.some(
+      c => c.weekNumber === currentWeek && c.challengerId === player.id
+    );
+
+    if (hasChallengeThisWeek) {
       return {
         label: 'Já desafiou nesta sem.',
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
