@@ -12,7 +12,7 @@ import { ResetLeagueModal } from './components/ResetLeagueModal';
 import { EditPlayerModal } from './components/EditPlayerModal';
 import { LoginModal } from './components/LoginModal';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { getQuarterEndCountdown, recalculatePlayerStats } from './utils/leagueRules';
+import { getQuarterEndCountdown, recalculatePlayerStats, getLeagueLeader } from './utils/leagueRules';
 import { 
   Trophy, 
   Swords, 
@@ -663,11 +663,11 @@ export const App: React.FC = () => {
                     <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Líder Atual da Liga</span>
                     <p className="text-sm font-bold text-orange-400">
                       {(() => {
-                        const activeList = players.filter(p => p.status === 'active');
-                        if (activeList.length === 0) return 'Sem Atleta Cadastrado';
-                        const sorted = [...activeList].sort((a, b) => a.rank - b.rank);
-                        const leader = sorted.find(p => p.rank === 1) || sorted[0];
-                        return `${leader.name} (Rank #${leader.rank})`;
+                        const leader = getLeagueLeader(players);
+                        if (!leader) return 'Sem Atleta Cadastrado';
+                        const pointDiff = (leader.pointDiff !== undefined) ? leader.pointDiff : ((leader.pointsScored || 0) - (leader.pointsConceded || 0));
+                        const diffStr = pointDiff >= 0 ? `+${pointDiff}` : `${pointDiff}`;
+                        return `${leader.name} (${leader.wins} Vitórias | Saldo: ${diffStr} pts)`;
                       })()}
                     </p>
                   </div>

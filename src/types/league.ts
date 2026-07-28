@@ -11,6 +11,9 @@ export interface Player {
   role: UserRole; // 'admin' ou 'athlete'
   wins: number;
   losses: number;
+  pointsScored?: number; // Total de pontos pro (ganhos nos games/sets)
+  pointsConceded?: number; // Total de pontos contra (sofridos nos games/sets)
+  pointDiff?: number; // Saldo de pontos acumulados (pontosScored - pointsConceded)
   status: 'active' | 'cooldown' | 'injured';
   cooldownUntil?: string; // Data ISO até quando não pode desafiar
   cooldownReason?: string;

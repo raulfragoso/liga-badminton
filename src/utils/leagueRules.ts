@@ -196,13 +196,15 @@ export function processMatchOutcome(
  */
 export function recalculatePlayerStats(players: Player[], challenges: Challenge[]): Player[] {
   // Mapa de estado dinâmico dos atletas
-  const stateMap = new Map<string, { level: number; wins: number; losses: number }>();
+  const stateMap = new Map<string, { level: number; wins: number; losses: number; pointsScored: number; pointsConceded: number }>();
 
   players.forEach(p => {
     stateMap.set(p.id, {
       level: 1, // Todos iniciam no Nível 1
       wins: 0,
-      losses: 0
+      losses: 0,
+      pointsScored: 0,
+      pointsConceded: 0
     });
   });
 
@@ -216,6 +218,20 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
     const challengedState = stateMap.get(ch.challengedId);
 
     if (!challengerState || !challengedState) return;
+
+    // Acumular pontos ganhos e sofridos nos sets da partida
+    if (ch.games && ch.games.length > 0) {
+      ch.games.forEach(g => {
+        const cScore = Number(g.challengerScore) || 0;
+        const dScore = Number(g.challengedScore) || 0;
+
+        challengerState.pointsScored += cScore;
+        challengerState.pointsConceded += dScore;
+
+        challengedState.pointsScored += dScore;
+        challengedState.pointsConceded += cScore;
+      });
+    }
 
     let winnerId = ch.winnerId;
 
@@ -258,14 +274,51 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
   });
 
   return players.map(p => {
-    const s = stateMap.get(p.id) || { level: 1, wins: 0, losses: 0 };
+    const s = stateMap.get(p.id) || { level: 1, wins: 0, losses: 0, pointsScored: 0, pointsConceded: 0 };
+    const pointDiff = s.pointsScored - s.pointsConceded;
+
     return {
       ...p,
       level: Math.max(1, s.level),
       wins: s.wins,
-      losses: s.losses
+      losses: s.losses,
+      pointsScored: s.pointsScored,
+      pointsConceded: s.pointsConceded,
+      pointDiff
     };
   });
+}
+
+/**
+ * Ordena e identifica o Líder Atual da Liga.
+ * Regra Principal: Número de jogos ganhos (Vitórias).
+ * Critério de Desempate: Saldo de pontos ganhos acumulados (pontosScored - pontosConceded).
+ */
+export function getLeagueLeader(players: Player[]): Player | null {
+  const activeList = players.filter(p => p.status === 'active');
+  if (activeList.length === 0) return null;
+
+  const sorted = [...activeList].sort((a, b) => {
+    // 1. Número de jogos ganhos (Vitórias)
+    const winsA = a.wins || 0;
+    const winsB = b.wins || 0;
+    if (winsB !== winsA) return winsB - winsA;
+
+    // 2. Desempate: Saldo de pontos ganhos acumulados
+    const diffA = (a.pointDiff !== undefined) ? a.pointDiff : ((a.pointsScored || 0) - (a.pointsConceded || 0));
+    const diffB = (b.pointDiff !== undefined) ? b.pointDiff : ((b.pointsScored || 0) - (b.pointsConceded || 0));
+    if (diffB !== diffA) return diffB - diffA;
+
+    // 3. Desempate 2: Pontos pró acumulados
+    const scoredA = a.pointsScored || 0;
+    const scoredB = b.pointsScored || 0;
+    if (scoredB !== scoredA) return scoredB - scoredA;
+
+    // 4. Desempate 3: Posição/Rank histórico
+    return a.rank - b.rank;
+  });
+
+  return sorted[0];
 }
 
 /**
