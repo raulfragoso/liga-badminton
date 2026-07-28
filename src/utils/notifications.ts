@@ -25,7 +25,7 @@ export function formatWhatsappChallengeUrl(
     `⚔️ *Confronto:* ${challengerName} (Nível ${challengerLevel}) vs ${challengedName} (Nível ${challengedLevel})\n` +
     `📅 *Semana:* ${weekNumber}` +
     `${timeText}\n\n` +
-    `Acesse o sistema para visualizar e responder:\nhttps://liga-badminton.vercel.app`;
+    `Acesse o sistema para visualizar e responder:\nhttps://liga-badminton-six.vercel.app/`;
 
   if (phoneWithCountry) {
     return `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(text)}`;
