@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Challenge, Player } from '../types/league';
 import { sendWhatsappNotification } from '../utils/notifications';
-import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare } from 'lucide-react';
+import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare, Trash2 } from 'lucide-react';
 
 interface MatchHistoryProps {
   challenges: Challenge[];
   players?: Player[];
+  currentUser?: Player | null;
   onSelectChallengeToResolve: (challenge: Challenge) => void;
+  onDeleteChallenge?: (challengeId: string) => void;
 }
 
 export const MatchHistory: React.FC<MatchHistoryProps> = ({
   challenges,
   players = [],
+  currentUser,
   onSelectChallengeToResolve,
+  onDeleteChallenge,
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -198,6 +202,20 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                     >
                       Registrar Resultado
                     </button>
+
+                    {onDeleteChallenge && (currentUser?.role === 'admin' || currentUser?.id === challenge.challengerId || currentUser?.id === challenge.challengedId) && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Tem certeza que deseja cancelar e apagar o desafio entre ${challenge.challengerName} e ${challenge.challengedName}?`)) {
+                            onDeleteChallenge(challenge.id);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-colors"
+                        title="Cancelar e Apagar Desafio Pendente"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button

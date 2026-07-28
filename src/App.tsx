@@ -43,7 +43,8 @@ import {
   fetchChallengesFromSupabase, 
   saveAllChallengesToSupabase, 
   subscribeToSupabaseRealtime, 
-  deleteAllDataFromSupabase 
+  deleteAllDataFromSupabase,
+  deleteChallengeFromSupabase
 } from './utils/supabaseClient';
 
 export const App: React.FC = () => {
@@ -352,6 +353,18 @@ export const App: React.FC = () => {
       'Nova Temporada Iniciada!',
       `Todos os jogos foram zerados. Período agendado de ${formattedStart} a ${formattedEnd}.`,
       'success'
+    );
+  };
+
+  const handleDeleteChallenge = (challengeId: string) => {
+    const updatedChallenges = challenges.filter(c => c.id !== challengeId);
+    setChallenges(updatedChallenges);
+    localStorage.setItem('badminton_challenges', JSON.stringify(updatedChallenges));
+    deleteChallengeFromSupabase(challengeId);
+    showToast(
+      'Desafio Cancelado',
+      'O desafio pendente foi excluído com sucesso.',
+      'warning'
     );
   };
 
@@ -687,10 +700,12 @@ export const App: React.FC = () => {
                 <MatchHistory
                   challenges={challenges}
                   players={players}
+                  currentUser={currentUser}
                   onSelectChallengeToResolve={(challenge) => {
                     setSelectedChallengeToResolve(challenge);
                     setIsMatchResultModalOpen(true);
                   }}
+                  onDeleteChallenge={handleDeleteChallenge}
                 />
               )}
 
@@ -809,6 +824,7 @@ export const App: React.FC = () => {
         challenge={selectedChallengeToResolve}
         players={players}
         onCompleteMatch={handleCompleteMatch}
+        onDeleteChallenge={handleDeleteChallenge}
       />
 
       <PlayerManagementModal

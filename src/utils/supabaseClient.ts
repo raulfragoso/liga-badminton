@@ -178,6 +178,21 @@ export async function saveAllChallengesToSupabase(challenges: Challenge[]): Prom
   }
 }
 
+export async function deleteChallengeFromSupabase(challengeId: string): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('challenges').delete().eq('id', challengeId);
+    if (error) {
+      console.error('Erro ao deletar desafio do Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Falha ao deletar desafio no Supabase:', err);
+    return false;
+  }
+}
+
 export async function deleteAllDataFromSupabase(): Promise<boolean> {
   if (!supabase) return false;
   try {
