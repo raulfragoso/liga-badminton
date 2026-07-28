@@ -128,7 +128,7 @@ export async function fetchPlayersFromSupabase(): Promise<Player[] | null> {
 }
 
 export async function saveAllPlayersToSupabase(players: Player[]): Promise<boolean> {
-  if (!supabase) return false;
+  if (!supabase || players.length === 0) return false;
   try {
     const dbPayload = players.map(mapPlayerToDb);
     const { error } = await supabase.from('players').upsert(dbPayload);
@@ -139,6 +139,22 @@ export async function saveAllPlayersToSupabase(players: Player[]): Promise<boole
     return true;
   } catch (err) {
     console.error('Falha ao salvar atletas no Supabase:', err);
+    return false;
+  }
+}
+
+export async function saveSinglePlayerToSupabase(player: Player): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const dbPayload = mapPlayerToDb(player);
+    const { error } = await supabase.from('players').upsert(dbPayload);
+    if (error) {
+      console.error('Erro ao salvar atleta no Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Falha ao salvar atleta no Supabase:', err);
     return false;
   }
 }
@@ -159,12 +175,8 @@ export async function fetchChallengesFromSupabase(): Promise<Challenge[] | null>
 }
 
 export async function saveAllChallengesToSupabase(challenges: Challenge[]): Promise<boolean> {
-  if (!supabase) return false;
+  if (!supabase || challenges.length === 0) return false;
   try {
-    if (challenges.length === 0) {
-      await supabase.from('challenges').delete().neq('id', '0');
-      return true;
-    }
     const dbPayload = challenges.map(mapChallengeToDb);
     const { error } = await supabase.from('challenges').upsert(dbPayload);
     if (error) {
@@ -174,6 +186,22 @@ export async function saveAllChallengesToSupabase(challenges: Challenge[]): Prom
     return true;
   } catch (err) {
     console.error('Falha ao salvar desafios no Supabase:', err);
+    return false;
+  }
+}
+
+export async function saveSingleChallengeToSupabase(challenge: Challenge): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const dbPayload = mapChallengeToDb(challenge);
+    const { error } = await supabase.from('challenges').upsert(dbPayload);
+    if (error) {
+      console.error('Erro ao salvar desafio no Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Falha ao salvar desafio no Supabase:', err);
     return false;
   }
 }

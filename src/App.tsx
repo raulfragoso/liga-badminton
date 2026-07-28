@@ -104,24 +104,32 @@ export const App: React.FC = () => {
   // Toast Notificação
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string; type: 'success' | 'warning' } | null>(null);
 
+  const [isLoadedFromCloud, setIsLoadedFromCloud] = useState(false);
+
   // Sincronização inicial e Realtime com o Supabase (banco em nuvem compartilhado)
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setIsLoadedFromCloud(true);
+      return;
+    }
 
-    // Carregar atletas da nuvem ao iniciar (exibe exatamente os atletas salvos no banco Supabase)
-    fetchPlayersFromSupabase().then(cloudPlayers => {
-      if (cloudPlayers !== null) {
+    // Carregar atletas e desafios da nuvem ao iniciar
+    Promise.all([
+      fetchPlayersFromSupabase(),
+      fetchChallengesFromSupabase()
+    ]).then(([cloudPlayers, cloudChallenges]) => {
+      if (cloudPlayers !== null && cloudPlayers.length > 0) {
         setPlayers(cloudPlayers);
         localStorage.setItem('badminton_players', JSON.stringify(cloudPlayers));
       }
-    });
-
-    // Carregar desafios da nuvem ao iniciar
-    fetchChallengesFromSupabase().then(cloudChallenges => {
-      if (cloudChallenges !== null) {
+      if (cloudChallenges !== null && cloudChallenges.length > 0) {
         setChallenges(cloudChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
       }
+      setIsLoadedFromCloud(true);
+    }).catch(err => {
+      console.error("Erro no carregamento inicial do Supabase:", err);
+      setIsLoadedFromCloud(true);
     });
 
     // Assinar atualizações Realtime para atualizar instantaneamente o celular de todos os atletas
@@ -139,21 +147,20 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Salvar alterações no localStorage e no Supabase
+  // Salvar alterações no localStorage e no Supabase (Somente APÓS o carregamento inicial da nuvem ter concluído)
   useEffect(() => {
     localStorage.setItem('badminton_players', JSON.stringify(players));
-    if (isSupabaseConfigured && players.length > 0) {
+    if (isLoadedFromCloud && isSupabaseConfigured && players.length > 0) {
       saveAllPlayersToSupabase(players);
     }
-  }, [players]);
+  }, [players, isLoadedFromCloud]);
 
   useEffect(() => {
     localStorage.setItem('badminton_challenges', JSON.stringify(challenges));
-    setPlayers(prevPlayers => recalculatePlayerStats(prevPlayers, challenges));
-    if (isSupabaseConfigured) {
+    if (isLoadedFromCloud && isSupabaseConfigured && challenges.length > 0) {
       saveAllChallengesToSupabase(challenges);
     }
-  }, [challenges]);
+  }, [challenges, isLoadedFromCloud]);
 
   useEffect(() => {
     localStorage.setItem('badminton_settings', JSON.stringify(settings));
