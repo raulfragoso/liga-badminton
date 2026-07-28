@@ -93,12 +93,17 @@ export function validateAndAuthenticateUser(
     };
   }
 
-  // Verificar se o usuário está tentando entrar como "admin" ou pelo telefone do admin
+  // Obter credenciais master do administrador via variáveis de ambiente da Vercel/Vite
+  const masterAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'm3t4bad';
+  const masterAdminPhone = import.meta.env.VITE_ADMIN_PHONE || 'admin';
+  const cleanMasterPhone = sanitizePhone(masterAdminPhone);
+
+  // Verificar se o usuário está tentando entrar como "admin" ou pelo telefone master configurado
   const isTargetingAdmin =
     trimmedInput.toLowerCase() === 'admin' ||
     trimmedInput.toLowerCase() === 'administrador' ||
-    cleanPhone === '11987654321' ||
-    cleanPhone === '987654321';
+    (cleanMasterPhone.length > 0 && cleanPhone === cleanMasterPhone) ||
+    trimmedInput === masterAdminPhone;
 
   let foundPlayer: Player | undefined;
 
@@ -107,7 +112,7 @@ export function validateAndAuthenticateUser(
     foundPlayer = players.find(p => p.role === 'admin') || players[0];
     if (foundPlayer) {
       foundPlayer.role = 'admin';
-      foundPlayer.password = 'm3t4bad';
+      if (!foundPlayer.password) foundPlayer.password = masterAdminPassword;
     } else {
       foundPlayer = {
         id: 'admin-master',
@@ -115,7 +120,7 @@ export function validateAndAuthenticateUser(
         rank: 1,
         level: 1,
         role: 'admin',
-        password: 'm3t4bad',
+        password: masterAdminPassword,
         wins: 0,
         losses: 0,
         status: 'active',
@@ -141,13 +146,13 @@ export function validateAndAuthenticateUser(
     };
   }
 
-  // Validar a senha de acesso (Admin: m3t4bad)
-  const userPassword = foundPlayer.password || (foundPlayer.role === 'admin' ? 'm3t4bad' : '1234');
+  // Validar a senha de acesso (compara com a senha salva do atleta ou com a variável de ambiente VITE_ADMIN_PASSWORD)
+  const userPassword = foundPlayer.password || (foundPlayer.role === 'admin' ? masterAdminPassword : '1234');
 
   const isValidPassword =
     enteredPassword === userPassword ||
     enteredPassword === foundPlayer.password ||
-    (foundPlayer.role === 'admin' && (enteredPassword === 'm3t4bad' || enteredPassword === 'admin'));
+    (foundPlayer.role === 'admin' && enteredPassword === masterAdminPassword);
 
   if (!isValidPassword) {
     return {

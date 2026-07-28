@@ -38,8 +38,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const handleQuickLogin = (player: Player) => {
-    const userPass = player.role === 'admin' ? 'm3t4bad' : (player.password || '1234');
-    setPhone(player.phone || (player.role === 'admin' ? 'admin' : ''));
+    const adminEnvPass = import.meta.env.VITE_ADMIN_PASSWORD || 'm3t4bad';
+    const adminEnvPhone = import.meta.env.VITE_ADMIN_PHONE || 'admin';
+    const userPass = player.role === 'admin' ? adminEnvPass : (player.password || '1234');
+    setPhone(player.phone || (player.role === 'admin' ? adminEnvPhone : ''));
     setPassword(userPass);
     setErrorMessage('');
 
