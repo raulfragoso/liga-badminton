@@ -45,24 +45,18 @@ import {
 } from './utils/supabaseClient';
 
 export const App: React.FC = () => {
-  // Estado com persistência LocalStorage
+  // Estado com persistência LocalStorage (inicia limpo até sincronizar com o banco)
   const [players, setPlayers] = useState<Player[]>(() => {
     const saved = localStorage.getItem('badminton_players');
     if (saved !== null) {
       try {
         const loaded: Player[] = JSON.parse(saved);
-        if (loaded && loaded.length > 0) {
-          if (!loaded.some(p => p.role === 'admin')) {
-            loaded[0].role = 'admin';
-            loaded[0].password = loaded[0].password || 'admin';
-          }
-        }
         return loaded;
       } catch (e) {
-        return INITIAL_PLAYERS;
+        return [];
       }
     }
-    return INITIAL_PLAYERS;
+    return [];
   });
 
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
@@ -71,10 +65,10 @@ export const App: React.FC = () => {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return INITIAL_CHALLENGES;
+        return [];
       }
     }
-    return INITIAL_CHALLENGES;
+    return [];
   });
 
   const [settings, setSettings] = useState<LeagueSettings>(() => {
@@ -113,9 +107,9 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
 
-    // Carregar atletas da nuvem ao iniciar
+    // Carregar atletas da nuvem ao iniciar (exibe exatamente os atletas salvos no banco Supabase)
     fetchPlayersFromSupabase().then(cloudPlayers => {
-      if (cloudPlayers && cloudPlayers.length > 0) {
+      if (cloudPlayers !== null) {
         setPlayers(cloudPlayers);
         localStorage.setItem('badminton_players', JSON.stringify(cloudPlayers));
       }
@@ -123,7 +117,7 @@ export const App: React.FC = () => {
 
     // Carregar desafios da nuvem ao iniciar
     fetchChallengesFromSupabase().then(cloudChallenges => {
-      if (cloudChallenges) {
+      if (cloudChallenges !== null) {
         setChallenges(cloudChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
       }
