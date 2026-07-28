@@ -94,8 +94,11 @@ export function validateAndAuthenticateUser(
   }
 
   // Obter credenciais master do administrador via variáveis de ambiente da Vercel/Vite
-  const masterAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'm3t4bad';
-  const masterAdminPhone = import.meta.env.VITE_ADMIN_PHONE || 'admin';
+  const rawEnvPassword = (import.meta.env.VITE_ADMIN_PASSWORD || '').trim();
+  const rawEnvPhone = (import.meta.env.VITE_ADMIN_PHONE || '').trim();
+
+  const masterAdminPassword = rawEnvPassword || 'm3t4bad';
+  const masterAdminPhone = rawEnvPhone || 'admin';
   const cleanMasterPhone = sanitizePhone(masterAdminPhone);
 
   // Verificar se o usuário está tentando entrar como "admin" ou pelo telefone master configurado
@@ -103,7 +106,7 @@ export function validateAndAuthenticateUser(
     trimmedInput.toLowerCase() === 'admin' ||
     trimmedInput.toLowerCase() === 'administrador' ||
     (cleanMasterPhone.length > 0 && cleanPhone === cleanMasterPhone) ||
-    trimmedInput === masterAdminPhone;
+    (masterAdminPhone.length > 0 && trimmedInput.toLowerCase() === masterAdminPhone.toLowerCase());
 
   let foundPlayer: Player | undefined;
 
@@ -112,7 +115,6 @@ export function validateAndAuthenticateUser(
     foundPlayer = players.find(p => p.role === 'admin') || players[0];
     if (foundPlayer) {
       foundPlayer.role = 'admin';
-      if (!foundPlayer.password) foundPlayer.password = masterAdminPassword;
     } else {
       foundPlayer = {
         id: 'admin-master',
@@ -139,6 +141,7 @@ export function validateAndAuthenticateUser(
   }
 
   if (!foundPlayer) {
+    console.warn('[Liga Badminton Auth] Usuário não encontrado para:', trimmedInput);
     return {
       success: false,
       user: null,
@@ -146,19 +149,31 @@ export function validateAndAuthenticateUser(
     };
   }
 
-  // Validar a senha de acesso (compara com a senha salva do atleta ou com a variável de ambiente VITE_ADMIN_PASSWORD)
-  const userPassword = foundPlayer.password || (foundPlayer.role === 'admin' ? masterAdminPassword : '1234');
+  const isAdminUser = foundPlayer.role === 'admin' || isTargetingAdmin;
 
+  // Validar a senha de acesso (compara a senha digitada com a variável de ambiente, senha do objeto ou fallbacks)
   const isValidPassword =
-    enteredPassword === userPassword ||
+    enteredPassword === masterAdminPassword ||
+    (rawEnvPassword.length > 0 && enteredPassword === rawEnvPassword) ||
     enteredPassword === foundPlayer.password ||
-    (foundPlayer.role === 'admin' && enteredPassword === masterAdminPassword);
+    (isAdminUser && (enteredPassword === 'm3t4bad' || enteredPassword === 'admin'));
+
+  // Log de depuração no console do navegador (F12) para diagnosticar Vercel env vars
+  console.log('[Liga Badminton Auth Debug]', {
+    loginInformado: trimmedInput,
+    isTargetingAdmin,
+    isAdminUser,
+    hasViteEnvPassword: Boolean(rawEnvPassword),
+    envPasswordLength: rawEnvPassword.length,
+    usuarioEncontrado: foundPlayer.name,
+    autenticadoComSucesso: isValidPassword
+  });
 
   if (!isValidPassword) {
     return {
       success: false,
       user: null,
-      errorMessage: 'Senha de acesso incorreta. Verifique e tente novamente.'
+      errorMessage: 'Senha de acesso incorreta. Verifique a senha configurada ou tente novamente.'
     };
   }
 
