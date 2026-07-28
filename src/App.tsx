@@ -35,19 +35,33 @@ export const App: React.FC = () => {
   // Estado com persistência LocalStorage
   const [players, setPlayers] = useState<Player[]>(() => {
     const saved = localStorage.getItem('badminton_players');
-    const loaded: Player[] = saved ? JSON.parse(saved) : INITIAL_PLAYERS;
-    if (loaded && loaded.length > 0) {
-      if (!loaded.some(p => p.role === 'admin')) {
-        loaded[0].role = 'admin';
-        loaded[0].password = loaded[0].password || 'admin';
+    if (saved !== null) {
+      try {
+        const loaded: Player[] = JSON.parse(saved);
+        if (loaded && loaded.length > 0) {
+          if (!loaded.some(p => p.role === 'admin')) {
+            loaded[0].role = 'admin';
+            loaded[0].password = loaded[0].password || 'admin';
+          }
+        }
+        return loaded;
+      } catch (e) {
+        return INITIAL_PLAYERS;
       }
     }
-    return loaded;
+    return INITIAL_PLAYERS;
   });
 
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
     const saved = localStorage.getItem('badminton_challenges');
-    return saved ? JSON.parse(saved) : INITIAL_CHALLENGES;
+    if (saved !== null) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return INITIAL_CHALLENGES;
+      }
+    }
+    return INITIAL_CHALLENGES;
   });
 
   const [settings, setSettings] = useState<LeagueSettings>(() => {
@@ -129,7 +143,11 @@ export const App: React.FC = () => {
       setPlayers(INITIAL_PLAYERS);
       setChallenges(INITIAL_CHALLENGES);
       setSettings(INITIAL_SETTINGS);
-      localStorage.clear();
+      setCurrentUser(INITIAL_PLAYERS[0]);
+      localStorage.setItem('badminton_players', JSON.stringify(INITIAL_PLAYERS));
+      localStorage.setItem('badminton_challenges', JSON.stringify(INITIAL_CHALLENGES));
+      localStorage.setItem('badminton_settings', JSON.stringify(INITIAL_SETTINGS));
+      localStorage.setItem('badminton_current_user', JSON.stringify(INITIAL_PLAYERS[0]));
       showToast('Dados Resetados', 'A liga foi restaurada para a demonstração inicial.', 'warning');
     }
   };
@@ -140,7 +158,9 @@ export const App: React.FC = () => {
       setPlayers([]);
       setChallenges([]);
       setCurrentUser(null);
-      localStorage.clear();
+      localStorage.setItem('badminton_players', JSON.stringify([]));
+      localStorage.setItem('badminton_challenges', JSON.stringify([]));
+      localStorage.removeItem('badminton_current_user');
       showToast('Dados Removidos', 'Todos os registros de atletas e jogos foram completamente limpos da aplicação.', 'warning');
     }
   };
