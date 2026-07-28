@@ -686,6 +686,7 @@ export const App: React.FC = () => {
               {activeTab === 'history' && (
                 <MatchHistory
                   challenges={challenges}
+                  players={players}
                   onSelectChallengeToResolve={(challenge) => {
                     setSelectedChallengeToResolve(challenge);
                     setIsMatchResultModalOpen(true);

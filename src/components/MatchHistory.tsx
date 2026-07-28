@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Challenge } from '../types/league';
-import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil } from 'lucide-react';
+import { Challenge, Player } from '../types/league';
+import { sendWhatsappNotification } from '../utils/notifications';
+import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare } from 'lucide-react';
 
 interface MatchHistoryProps {
   challenges: Challenge[];
+  players?: Player[];
   onSelectChallengeToResolve: (challenge: Challenge) => void;
 }
 
 export const MatchHistory: React.FC<MatchHistoryProps> = ({
   challenges,
+  players = [],
   onSelectChallengeToResolve,
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -170,12 +173,32 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                 {getStatusBadge(challenge.status)}
 
                 {challenge.status === 'pending' ? (
-                  <button
-                    onClick={() => onSelectChallengeToResolve(challenge)}
-                    className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shadow transition-all"
-                  >
-                    Registrar Resultado
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const challengedPlayer = players.find(p => p.id === challenge.challengedId);
+                        const challengerPlayer = players.find(p => p.id === challenge.challengerId);
+                        sendWhatsappNotification(
+                          challengerPlayer || ({ name: challenge.challengerName, level: challenge.challengerLevel } as any),
+                          challengedPlayer || ({ name: challenge.challengedName, level: challenge.challengedLevel, phone: '' } as any),
+                          challenge.weekNumber,
+                          challenge.notes
+                        );
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all flex items-center gap-1.5"
+                      title="Reenviar Notificação no WhatsApp do Desafiado"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>WhatsApp</span>
+                    </button>
+
+                    <button
+                      onClick={() => onSelectChallengeToResolve(challenge)}
+                      className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shadow transition-all whitespace-nowrap"
+                    >
+                      Registrar Resultado
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={() => onSelectChallengeToResolve(challenge)}

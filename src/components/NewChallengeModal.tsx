@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Challenge } from '../types/league';
 import { validateNewChallenge } from '../utils/leagueRules';
-import { Swords, X, AlertTriangle, CheckCircle2, Calendar, Clock, FileText, Zap } from 'lucide-react';
+import { sendWhatsappNotification } from '../utils/notifications';
+import { Swords, X, AlertTriangle, CheckCircle2, Calendar, Clock, FileText, Zap, MessageSquare } from 'lucide-react';
 
 interface NewChallengeModalProps {
   isOpen: boolean;
@@ -49,7 +50,8 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
 }) => {
   const [challengerId, setChallengerId] = useState<string>('');
   const [challengedId, setChallengedId] = useState<string>('');
-  
+  const [sendNotification, setSendNotification] = useState<boolean>(true); // Checado por padrão por solicitação do usuário
+
   // Data e horário padrão: hoje às 19:00
   const getDefaultDateTime = () => {
     const d = new Date();
@@ -142,6 +144,17 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
     };
 
     onSaveChallenge(newChallenge);
+
+    // Disparar notificação no WhatsApp do desafiado se a caixa de seleção estiver checada
+    if (sendNotification) {
+      sendWhatsappNotification(
+        selectedChallenger,
+        selectedChallenged,
+        currentWeek,
+        formattedTimeStr
+      );
+    }
+
     onClose();
   };
 
@@ -310,6 +323,25 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
               onChange={(e) => setNotes(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
             />
+          </div>
+
+          {/* Caixa de Seleção: Notificação no WhatsApp (Checada por Padrão) */}
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-emerald-300 select-none">
+              <input
+                type="checkbox"
+                checked={sendNotification}
+                onChange={(e) => setSendNotification(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 cursor-pointer"
+              />
+              <span className="flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                Notificar atleta desafiado no WhatsApp
+              </span>
+            </label>
+            <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shrink-0">
+              Padrão
+            </span>
           </div>
 
           {/* Botões de Ação */}
