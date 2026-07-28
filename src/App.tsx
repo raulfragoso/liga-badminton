@@ -28,7 +28,9 @@ import {
   Pencil,
   LogIn,
   LogOut,
-  Trash2
+  Trash2,
+  Download,
+  Upload
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -162,6 +164,50 @@ export const App: React.FC = () => {
       localStorage.setItem('badminton_challenges', JSON.stringify([]));
       localStorage.removeItem('badminton_current_user');
       showToast('Dados Removidos', 'Todos os registros de atletas e jogos foram completamente limpos da aplicação.', 'warning');
+    }
+  };
+
+  // Exportar dados da Liga em arquivo JSON
+  const handleExportData = () => {
+    const backupData = {
+      players,
+      challenges,
+      settings,
+      exportedAt: new Date().toISOString()
+    };
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `backup-liga-badminton-${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast('Backup Exportado!', 'Arquivo JSON com os atletas e jogos foi baixado.', 'success');
+  };
+
+  // Importar dados da Liga a partir de um arquivo JSON
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    if (e.target.files && e.target.files[0]) {
+      fileReader.readAsText(e.target.files[0], 'UTF-8');
+      fileReader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target?.result as string);
+          if (parsed.players && Array.isArray(parsed.players)) {
+            setPlayers(parsed.players);
+            if (parsed.challenges && Array.isArray(parsed.challenges)) setChallenges(parsed.challenges);
+            if (parsed.settings) setSettings(parsed.settings);
+            localStorage.setItem('badminton_players', JSON.stringify(parsed.players));
+            localStorage.setItem('badminton_challenges', JSON.stringify(parsed.challenges || []));
+            if (parsed.settings) localStorage.setItem('badminton_settings', JSON.stringify(parsed.settings));
+            showToast('Dados Importados!', `${parsed.players.length} atletas carregados na aplicação com sucesso.`, 'success');
+          } else {
+            showToast('Arquivo Inválido', 'O arquivo selecionado não possui o formato de dados válido da liga.', 'warning');
+          }
+        } catch (err) {
+          showToast('Erro ao Importar', 'Não foi possível ler o arquivo JSON.', 'warning');
+        }
+      };
     }
   };
 
@@ -417,6 +463,33 @@ export const App: React.FC = () => {
                 <RotateCcw className="w-4 h-4" />
                 <span>Zerar Liga</span>
               </button>
+            )}
+
+            {/* Exportar Backup JSON */}
+            {isAdmin && (
+              <button
+                onClick={handleExportData}
+                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border border-slate-800 text-xs transition-colors flex items-center gap-1"
+                title="Exportar Backup dos Atletas (Baixar Arquivo JSON)"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Importar Backup JSON */}
+            {isAdmin && (
+              <label
+                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 hover:text-cyan-300 border border-slate-800 text-xs transition-colors cursor-pointer flex items-center gap-1"
+                title="Importar Arquivo Backup JSON (Carregar Atletas)"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportData}
+                  className="hidden"
+                />
+              </label>
             )}
 
             {/* Reset de Demonstração */}
