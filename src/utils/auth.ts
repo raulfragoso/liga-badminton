@@ -1,4 +1,5 @@
 import { Player } from '../types/league';
+import { INITIAL_PLAYERS } from '../data/initialData';
 
 export interface AuthResult {
   success: boolean;
@@ -82,6 +83,9 @@ export function validateAndAuthenticateUser(
   phoneInput: string,
   passwordInput: string
 ): AuthResult {
+  // Garante que haja atletas para pesquisar (usa INITIAL_PLAYERS se o banco/memória estiverem vazios)
+  const targetPlayersList = (players && players.length > 0) ? players : INITIAL_PLAYERS;
+
   const trimmedInput = (phoneInput || '').trim();
   const cleanPhone = sanitizePhone(phoneInput);
   const enteredPassword = (passwordInput || '').trim();
@@ -121,7 +125,7 @@ export function validateAndAuthenticateUser(
 
   if (isTargetingAdmin) {
     // Buscar o jogador admin ou criar conta admin padrão caso o banco esteja limpo
-    foundPlayer = players.find(p => p.role === 'admin') || players[0];
+    foundPlayer = targetPlayersList.find(p => p.role === 'admin') || targetPlayersList[0];
     if (foundPlayer) {
       foundPlayer.role = 'admin';
     } else {
@@ -144,7 +148,7 @@ export function validateAndAuthenticateUser(
     const inputLast8 = inputDigitsOnly.length >= 8 ? inputDigitsOnly.slice(-8) : '';
     const inputLower = trimmedInput.toLowerCase().trim();
 
-    foundPlayer = players.find(p => {
+    foundPlayer = targetPlayersList.find(p => {
       const playerCleanPhone = sanitizePhone(p.phone || '');
       const playerDigitsOnly = (p.phone || '').replace(/\D/g, '');
       const playerLast8 = playerDigitsOnly.length >= 8 ? playerDigitsOnly.slice(-8) : '';
@@ -170,15 +174,12 @@ export function validateAndAuthenticateUser(
   }
 
   if (!foundPlayer) {
-    console.warn('[Liga Badminton Auth] Usuário não encontrado para:', trimmedInput, 'Total de atletas analisados:', players.length);
-    const totalMsg = players.length === 0 
-      ? ' (os atletas ainda estão sendo baixados da nuvem)'
-      : ` (${players.length} atletas cadastrados analisados)`;
+    console.warn('[Liga Badminton Auth] Usuário não encontrado para:', trimmedInput, 'Total de atletas analisados:', targetPlayersList.length);
 
     return {
       success: false,
       user: null,
-      errorMessage: `Nenhum atleta foi encontrado com o login "${trimmedInput}"${totalMsg}. Verifique o número digitado ou faça o cadastro.`
+      errorMessage: `Nenhum atleta foi encontrado com o login "${trimmedInput}". Verifique o número digitado ou faça o cadastro.`
     };
   }
 

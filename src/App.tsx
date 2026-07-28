@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Challenge, LeagueSettings } from './types/league';
-import { INITIAL_SETTINGS } from './data/initialData';
+import { INITIAL_PLAYERS, INITIAL_SETTINGS } from './data/initialData';
 import { PyramidView } from './components/PyramidView';
 import { NewChallengeModal } from './components/NewChallengeModal';
 import { MatchResultModal } from './components/MatchResultModal';
@@ -52,12 +52,12 @@ export const App: React.FC = () => {
     if (saved !== null) {
       try {
         const loaded: Player[] = JSON.parse(saved);
-        return loaded;
+        if (loaded.length > 0) return loaded;
       } catch (e) {
-        return [];
+        return INITIAL_PLAYERS;
       }
     }
-    return [];
+    return INITIAL_PLAYERS;
   });
 
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
