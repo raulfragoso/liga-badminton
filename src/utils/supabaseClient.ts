@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Player, Challenge } from '../types/league';
+import { INITIAL_PLAYERS } from '../data/initialData';
 
 // Buscar variáveis de ambiente do Vite ou fallbacks
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -116,9 +117,14 @@ export async function fetchPlayersFromSupabase(): Promise<Player[] | null> {
   if (!supabase) return null;
   try {
     const { data, error } = await supabase.from('players').select('*').order('rank', { ascending: true });
-    if (error || !data) {
+    if (error) {
       console.warn('Erro ao buscar players do Supabase:', error);
       return null;
+    }
+    if (!data || data.length === 0) {
+      console.warn('Banco de dados Supabase sem atletas. Inicializando atletas padrão da liga...');
+      await saveAllPlayersToSupabase(INITIAL_PLAYERS);
+      return INITIAL_PLAYERS;
     }
     return data.map(mapDbToPlayer);
   } catch (err) {

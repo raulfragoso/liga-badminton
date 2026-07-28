@@ -170,11 +170,15 @@ export function validateAndAuthenticateUser(
   }
 
   if (!foundPlayer) {
-    console.warn('[Liga Badminton Auth] Usuário não encontrado para:', trimmedInput);
+    console.warn('[Liga Badminton Auth] Usuário não encontrado para:', trimmedInput, 'Total de atletas analisados:', players.length);
+    const totalMsg = players.length === 0 
+      ? ' (os atletas ainda estão sendo baixados da nuvem)'
+      : ` (${players.length} atletas cadastrados analisados)`;
+
     return {
       success: false,
       user: null,
-      errorMessage: 'Nenhum usuário foi encontrado com este telefone ou nome. Verifique o número digitado.'
+      errorMessage: `Nenhum atleta foi encontrado com o login "${trimmedInput}"${totalMsg}. Verifique o número digitado ou faça o cadastro.`
     };
   }
 
