@@ -103,18 +103,25 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
       {/* Renderização em Pirâmide */}
       <div className="w-full max-w-6xl flex flex-col items-center gap-6 px-2">
         {tiers.map((tier) => {
-          const isTopTier = tier.level === 1;
-          const isTier2 = tier.level === 2;
-          const isTier3 = tier.level === 3;
+          const maxLevelInTiers = Math.max(...tiers.map(t => t.level));
+          const isTopTier = tier.level === maxLevelInTiers && maxLevelInTiers > 1;
+          const isLevel1 = tier.level === 1;
 
           return (
             <div key={tier.level} className="w-full flex flex-col items-center gap-2">
               {/* Rótulo do Nível da Pirâmide */}
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                {isTopTier && <span className="text-orange-400 flex items-center gap-1 font-bold"><Trophy className="w-3.5 h-3.5"/> NÍVEL 1 (TOPO - CAMPEÃO)</span>}
-                {isTier2 && <span className="text-slate-300">NÍVEL 2 (DESAFIANTES DE ELITE)</span>}
-                {isTier3 && <span className="text-amber-500 font-semibold">NÍVEL 3 (PREMIADOS)</span>}
-                {!isTopTier && !isTier2 && !isTier3 && <span>NÍVEL {tier.level}</span>}
+                {isLevel1 ? (
+                  <span className="text-orange-400 flex items-center gap-1 font-bold">
+                    <CheckCircle2 className="w-3.5 h-3.5"/> NÍVEL 1 (NÍVEL INICIAL DE ENTRADA)
+                  </span>
+                ) : isTopTier ? (
+                  <span className="text-amber-400 flex items-center gap-1 font-bold">
+                    <Trophy className="w-3.5 h-3.5"/> NÍVEL {tier.level} (TOPO DA PIRÂMIDE)
+                  </span>
+                ) : (
+                  <span>NÍVEL {tier.level}</span>
+                )}
                 <span className="text-slate-600">({tier.players.length}/{tier.capacity} vagas)</span>
               </div>
 
