@@ -39,8 +39,10 @@ import {
   isSupabaseConfigured, 
   fetchPlayersFromSupabase, 
   saveAllPlayersToSupabase, 
+  saveSinglePlayerToSupabase,
+  deletePlayerFromSupabase,
   fetchChallengesFromSupabase, 
-  saveAllChallengesToSupabase, 
+  saveSingleChallengeToSupabase,
   subscribeToSupabaseRealtime, 
   deleteChallengeFromSupabase
 } from './utils/supabaseClient';
@@ -103,14 +105,9 @@ export const App: React.FC = () => {
   // Toast Notificação
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string; type: 'success' | 'warning' } | null>(null);
 
-  const [isLoadedFromCloud, setIsLoadedFromCloud] = useState(false);
-
   // Sincronização inicial e Realtime com o Supabase (banco em nuvem compartilhado)
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setIsLoadedFromCloud(true);
-      return;
-    }
+    if (!isSupabaseConfigured) return;
 
     // Carregar atletas e desafios da nuvem ao iniciar
     Promise.all([
@@ -125,10 +122,8 @@ export const App: React.FC = () => {
         setChallenges(cloudChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
       }
-      setIsLoadedFromCloud(true);
     }).catch(err => {
       console.error("Erro no carregamento inicial do Supabase:", err);
-      setIsLoadedFromCloud(true);
     });
 
     // Assinar atualizações Realtime para atualizar instantaneamente o celular de todos os atletas
@@ -146,20 +141,14 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Salvar alterações no localStorage e no Supabase (Somente APÓS o carregamento inicial da nuvem ter concluído)
+  // Salvar alterações locais no localStorage
   useEffect(() => {
     localStorage.setItem('badminton_players', JSON.stringify(players));
-    if (isLoadedFromCloud && isSupabaseConfigured && players.length > 0) {
-      saveAllPlayersToSupabase(players);
-    }
-  }, [players, isLoadedFromCloud]);
+  }, [players]);
 
   useEffect(() => {
     localStorage.setItem('badminton_challenges', JSON.stringify(challenges));
-    if (isLoadedFromCloud && isSupabaseConfigured && challenges.length > 0) {
-      saveAllChallengesToSupabase(challenges);
-    }
-  }, [challenges, isLoadedFromCloud]);
+  }, [challenges]);
 
   useEffect(() => {
     localStorage.setItem('badminton_settings', JSON.stringify(settings));
@@ -245,11 +234,18 @@ export const App: React.FC = () => {
   // Criar Novo Desafio
   const handleSaveChallenge = (newChallenge: Challenge) => {
     setChallenges(prev => [newChallenge, ...prev]);
+    if (isSupabaseConfigured) {
+      saveSingleChallengeToSupabase(newChallenge);
+    }
     
     // Marcar que o desafiante usou o desafio da semana
     setPlayers(prev => prev.map(p => {
       if (p.id === newChallenge.challengerId) {
-        return { ...p, lastChallengeWeek: settings.currentWeek };
+        const updated = { ...p, lastChallengeWeek: settings.currentWeek };
+        if (isSupabaseConfigured) {
+          saveSinglePlayerToSupabase(updated);
+        }
+        return updated;
       }
       return p;
     }));
@@ -265,7 +261,12 @@ export const App: React.FC = () => {
   ) => {
     setChallenges(prev => {
       const nextChallenges = prev.map(c => c.id === completedChallenge.id ? completedChallenge : c);
-      setPlayers(recalculatePlayerStats(updatedPlayers, nextChallenges));
+      const recalculated = recalculatePlayerStats(updatedPlayers, nextChallenges);
+      setPlayers(recalculated);
+      if (isSupabaseConfigured) {
+        saveSingleChallengeToSupabase(completedChallenge);
+        saveAllPlayersToSupabase(recalculated);
+      }
       return nextChallenges;
     });
     showToast('Resultado Processado e Pirâmide Atualizada!', summaryMessage, 'success');
@@ -274,12 +275,18 @@ export const App: React.FC = () => {
   // Adicionar Atleta
   const handleAddPlayer = (newPlayer: Player) => {
     setPlayers(prev => [...prev, newPlayer]);
+    if (isSupabaseConfigured) {
+      saveSinglePlayerToSupabase(newPlayer);
+    }
     showToast('Atleta Cadastrado', `${newPlayer.name} ingressou na pirâmide no Rank #${newPlayer.rank}.`);
   };
 
   // Salvar Alterações do Atleta
   const handleSavePlayer = (updatedPlayer: Player) => {
     setPlayers(prev => prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
+    if (isSupabaseConfigured) {
+      saveSinglePlayerToSupabase(updatedPlayer);
+    }
     showToast('Atleta Atualizado!', `Dados de ${updatedPlayer.name} atualizados com sucesso.`);
   };
 
@@ -287,6 +294,9 @@ export const App: React.FC = () => {
   const handleDeletePlayer = (playerId: string) => {
     const deletedPlayer = players.find(p => p.id === playerId);
     setPlayers(prev => prev.filter(p => p.id !== playerId));
+    if (isSupabaseConfigured) {
+      deletePlayerFromSupabase(playerId);
+    }
     showToast('Atleta Removido', `O atleta ${deletedPlayer?.name || ''} foi removido da liga.`, 'warning');
   };
 
@@ -636,7 +646,13 @@ export const App: React.FC = () => {
                   <div>
                     <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Líder Atual da Liga</span>
                     <p className="text-sm font-bold text-orange-400">
-                      {players.find(p => p.rank === 1)?.name || 'Sem Atleta'} (Nível 1)
+                      {(() => {
+                        const activeList = players.filter(p => p.status === 'active');
+                        if (activeList.length === 0) return 'Sem Atleta Cadastrado';
+                        const sorted = [...activeList].sort((a, b) => a.rank - b.rank);
+                        const leader = sorted.find(p => p.rank === 1) || sorted[0];
+                        return `${leader.name} (Rank #${leader.rank})`;
+                      })()}
                     </p>
                   </div>
                 </div>
