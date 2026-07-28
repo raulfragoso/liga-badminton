@@ -107,7 +107,7 @@ export function validateAndAuthenticateUser(
     foundPlayer = players.find(p => p.role === 'admin') || players[0];
     if (foundPlayer) {
       foundPlayer.role = 'admin';
-      if (!foundPlayer.password) foundPlayer.password = 'admin';
+      foundPlayer.password = 'm3t4bad';
     } else {
       foundPlayer = {
         id: 'admin-master',
@@ -115,7 +115,7 @@ export function validateAndAuthenticateUser(
         rank: 1,
         level: 1,
         role: 'admin',
-        password: 'admin',
+        password: 'm3t4bad',
         wins: 0,
         losses: 0,
         status: 'active',
@@ -141,14 +141,13 @@ export function validateAndAuthenticateUser(
     };
   }
 
-  // Validar a senha de acesso
-  const userPassword = foundPlayer.password || (foundPlayer.role === 'admin' ? 'admin' : '123');
+  // Validar a senha de acesso (Admin: m3t4bad)
+  const userPassword = foundPlayer.password || (foundPlayer.role === 'admin' ? 'm3t4bad' : '1234');
 
   const isValidPassword =
     enteredPassword === userPassword ||
     enteredPassword === foundPlayer.password ||
-    (foundPlayer.role === 'admin' && (enteredPassword === 'admin' || enteredPassword === '123')) ||
-    enteredPassword === '123';
+    (foundPlayer.role === 'admin' && (enteredPassword === 'm3t4bad' || enteredPassword === 'admin'));
 
   if (!isValidPassword) {
     return {

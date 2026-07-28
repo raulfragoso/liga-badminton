@@ -38,8 +38,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const handleQuickLogin = (player: Player) => {
-    const userPass = player.password || (player.role === 'admin' ? 'admin' : '123');
-    setPhone(player.phone || '');
+    const userPass = player.role === 'admin' ? 'm3t4bad' : (player.password || '1234');
+    setPhone(player.phone || (player.role === 'admin' ? 'admin' : ''));
     setPassword(userPass);
     setErrorMessage('');
 
