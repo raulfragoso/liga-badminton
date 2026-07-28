@@ -108,7 +108,7 @@ export function validateAndAuthenticateUser(
   const rawEnvPassword = (import.meta.env.VITE_ADMIN_PASSWORD || '').trim();
   const rawEnvPhone = (import.meta.env.VITE_ADMIN_PHONE || '').trim();
 
-  const masterAdminPassword = rawEnvPassword || 'm3t4bad';
+  const masterAdminPassword = rawEnvPassword;
   const masterAdminPhone = rawEnvPhone || 'admin';
   const cleanMasterPhone = sanitizePhone(masterAdminPhone);
 
@@ -193,14 +193,12 @@ export function validateAndAuthenticateUser(
   const inputPhoneDefaultPass = getDefaultPasswordFromPhone(trimmedInput);
 
   const isValidPassword =
-    enteredPassword === masterAdminPassword ||
-    enteredPassLower === masterPassLower ||
+    (masterAdminPassword.length > 0 && (enteredPassword === masterAdminPassword || enteredPassLower === masterPassLower)) ||
     (rawEnvPassword.length > 0 && (enteredPassword === rawEnvPassword || enteredPassLower === rawEnvPassLower)) ||
     enteredPassword === foundPlayer.password ||
     enteredPassLower === playerPassLower ||
     (playerPhoneDefaultPass.length > 0 && (enteredPassword === playerPhoneDefaultPass || enteredPassLower === playerPhoneDefaultPass.toLowerCase())) ||
-    (inputPhoneDefaultPass.length > 0 && (enteredPassword === inputPhoneDefaultPass || enteredPassLower === inputPhoneDefaultPass.toLowerCase())) ||
-    (isAdminUser && (enteredPassLower === 'm3t4bad' || enteredPassLower === 'admin'));
+    (inputPhoneDefaultPass.length > 0 && (enteredPassword === inputPhoneDefaultPass || enteredPassLower === inputPhoneDefaultPass.toLowerCase()));
 
   // Log de depuração no console do navegador (F12) para diagnosticar Vercel env vars
   console.log('[Liga Badminton Auth Debug]', {
