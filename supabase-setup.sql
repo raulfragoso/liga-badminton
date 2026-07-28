@@ -41,11 +41,28 @@ CREATE TABLE IF NOT EXISTS public.challenges (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. Desativar RLS para permitir leitura/escrita do aplicativo
+-- 3. Criar Tabela de Configurações da Liga (league_settings)
+CREATE TABLE IF NOT EXISTS public.league_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  name TEXT NOT NULL,
+  season_start_date TEXT NOT NULL,
+  season_end_date TEXT NOT NULL,
+  current_week INTEGER DEFAULT 1,
+  max_refusals_without_penalty INTEGER DEFAULT 1,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Inserir registro padrão inicial se a tabela estiver nova
+INSERT INTO public.league_settings (id, name, season_start_date, season_end_date, current_week, max_refusals_without_penalty)
+VALUES ('default', 'Liga de Badminton - Complexo Esportivo Maylson Campos', '2026-07-01', '2026-09-30', 1, 1)
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Desativar RLS para permitir leitura/escrita do aplicativo
 ALTER TABLE public.players DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.challenges DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.league_settings DISABLE ROW LEVEL SECURITY;
 
--- 4. Habilitar Realtime para sincronização em tempo real entre celular e computador
+-- 5. Habilitar Realtime para sincronização em tempo real entre celular e computador
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -60,5 +77,12 @@ BEGIN
     WHERE pubname = 'supabase_realtime' AND tablename = 'challenges'
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.challenges;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'league_settings'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.league_settings;
   END IF;
 END $$;

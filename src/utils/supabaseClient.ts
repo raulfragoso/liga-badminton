@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Player, Challenge } from '../types/league';
+import { Player, Challenge, LeagueSettings } from '../types/league';
 
 // Buscar variáveis de ambiente do Vite ou fallbacks
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -249,11 +249,70 @@ export async function deleteAllDataFromSupabase(): Promise<boolean> {
 }
 
 /**
+ * Converte as configurações da liga para o formato da tabela 'league_settings'
+ */
+function mapSettingsToDb(s: LeagueSettings) {
+  return {
+    id: 'default',
+    name: s.name,
+    season_start_date: s.seasonStartDate,
+    season_end_date: s.seasonEndDate,
+    current_week: s.currentWeek,
+    max_refusals_without_penalty: s.maxRefusalsWithoutPenalty,
+    updated_at: new Date().toISOString()
+  };
+}
+
+/**
+ * Converte uma linha da tabela 'league_settings' para a interface LeagueSettings da aplicação
+ */
+function mapDbToSettings(row: any): LeagueSettings {
+  return {
+    name: row.name || "Liga de Badminton - Complexo Esportivo Maylson Campos",
+    seasonStartDate: row.season_start_date || "2026-07-01",
+    seasonEndDate: row.season_end_date || "2026-09-30",
+    currentWeek: row.current_week || 1,
+    maxRefusalsWithoutPenalty: row.max_refusals_without_penalty || 1
+  };
+}
+
+export async function fetchSettingsFromSupabase(): Promise<LeagueSettings | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.from('league_settings').select('*').eq('id', 'default').single();
+    if (error || !data) {
+      return null;
+    }
+    return mapDbToSettings(data);
+  } catch (err) {
+    console.error('Erro ao buscar configurações do Supabase:', err);
+    return null;
+  }
+}
+
+export async function saveSettingsToSupabase(settings: LeagueSettings): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const dbPayload = mapSettingsToDb(settings);
+    const { error } = await supabase.from('league_settings').upsert(dbPayload);
+    if (error) {
+      console.error('Erro ao salvar configurações no Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Falha ao salvar configurações no Supabase:', err);
+    return false;
+  }
+}
+
+/**
  * Assina atualizações Realtime do Supabase em tempo real para todos os dispositivos conectados
  */
 export function subscribeToSupabaseRealtime(
   onPlayersChange: (players: Player[]) => void,
-  onChallengesChange: (challenges: Challenge[]) => void
+  onChallengesChange: (challenges: Challenge[]) => void,
+  onSettingsChange?: (settings: LeagueSettings) => void
 ) {
   if (!supabase) return () => {};
 
@@ -266,6 +325,10 @@ export function subscribeToSupabaseRealtime(
     .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, async () => {
       const updatedChallenges = await fetchChallengesFromSupabase();
       if (updatedChallenges) onChallengesChange(updatedChallenges);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'league_settings' }, async () => {
+      const updatedSettings = await fetchSettingsFromSupabase();
+      if (updatedSettings && onSettingsChange) onSettingsChange(updatedSettings);
     })
     .subscribe();
 

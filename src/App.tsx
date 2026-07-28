@@ -43,6 +43,8 @@ import {
   deletePlayerFromSupabase,
   fetchChallengesFromSupabase, 
   saveSingleChallengeToSupabase,
+  fetchSettingsFromSupabase,
+  saveSettingsToSupabase,
   subscribeToSupabaseRealtime, 
   deleteChallengeFromSupabase
 } from './utils/supabaseClient';
@@ -109,11 +111,12 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
 
-    // Carregar atletas e desafios da nuvem ao iniciar
+    // Carregar atletas, desafios e configurações da liga da nuvem ao iniciar
     Promise.all([
       fetchPlayersFromSupabase(),
-      fetchChallengesFromSupabase()
-    ]).then(([cloudPlayers, cloudChallenges]) => {
+      fetchChallengesFromSupabase(),
+      fetchSettingsFromSupabase()
+    ]).then(([cloudPlayers, cloudChallenges, cloudSettings]) => {
       if (cloudPlayers !== null && cloudPlayers.length > 0) {
         setPlayers(cloudPlayers);
         localStorage.setItem('badminton_players', JSON.stringify(cloudPlayers));
@@ -121,6 +124,10 @@ export const App: React.FC = () => {
       if (cloudChallenges !== null && cloudChallenges.length > 0) {
         setChallenges(cloudChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
+      }
+      if (cloudSettings !== null) {
+        setSettings(cloudSettings);
+        localStorage.setItem('badminton_settings', JSON.stringify(cloudSettings));
       }
     }).catch(err => {
       console.error("Erro no carregamento inicial do Supabase:", err);
@@ -135,6 +142,10 @@ export const App: React.FC = () => {
       (updatedChallenges) => {
         setChallenges(updatedChallenges);
         localStorage.setItem('badminton_challenges', JSON.stringify(updatedChallenges));
+      },
+      (updatedSettings) => {
+        setSettings(updatedSettings);
+        localStorage.setItem('badminton_settings', JSON.stringify(updatedSettings));
       }
     );
 
@@ -323,13 +334,18 @@ export const App: React.FC = () => {
     })));
 
     // 3. Atualizar configurações da liga (novas datas, semana 1, nome)
-    setSettings(prev => ({
-      ...prev,
-      name: newSeasonName || prev.name,
+    const newSettings: LeagueSettings = {
+      ...settings,
+      name: newSeasonName || settings.name,
       seasonStartDate: newStartDate,
       seasonEndDate: newEndDate,
       currentWeek: 1
-    }));
+    };
+    setSettings(newSettings);
+
+    if (isSupabaseConfigured) {
+      saveSettingsToSupabase(newSettings);
+    }
 
     const formattedStart = new Date(newStartDate).toLocaleDateString('pt-BR');
     const formattedEnd = new Date(newEndDate).toLocaleDateString('pt-BR');
