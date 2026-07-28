@@ -842,6 +842,7 @@ export const App: React.FC = () => {
         onClose={() => setIsLoginModalOpen(false)}
         players={players}
         onLoginSuccess={handleLoginSuccess}
+        onUpdatePlayers={setPlayers}
       />
     </div>
   );

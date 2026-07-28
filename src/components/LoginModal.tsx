@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Player } from '../types/league';
 import { validateAndAuthenticateUser, formatPhoneMask } from '../utils/auth';
-import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { fetchPlayersFromSupabase, isSupabaseConfigured } from '../utils/supabaseClient';
+import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   players: Player[];
   onLoginSuccess: (user: Player) => void;
+  onUpdatePlayers?: (players: Player[]) => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -15,20 +17,42 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   players,
   onLoginSuccess,
+  onUpdatePlayers,
 }) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setIsSubmitting(true);
 
-    const authResult = validateAndAuthenticateUser(players, phone, password);
-    
+    let currentPlayers = players;
+    let authResult = validateAndAuthenticateUser(currentPlayers, phone, password);
+
+    // Se falhar a autenticação local, busca atletas em tempo real direto no Supabase
+    if (!authResult.success && isSupabaseConfigured) {
+      try {
+        const cloudPlayers = await fetchPlayersFromSupabase();
+        if (cloudPlayers && cloudPlayers.length > 0) {
+          currentPlayers = cloudPlayers;
+          if (onUpdatePlayers) {
+            onUpdatePlayers(cloudPlayers);
+          }
+          authResult = validateAndAuthenticateUser(currentPlayers, phone, password);
+        }
+      } catch (err) {
+        console.error('Erro ao consultar Supabase durante o login:', err);
+      }
+    }
+
+    setIsSubmitting(false);
+
     if (authResult.success && authResult.user) {
       onLoginSuccess(authResult.user);
       onClose();
@@ -149,10 +173,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 mt-2"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 mt-2"
           >
-            <LogIn className="w-4 h-4" />
-            Entrar e Autenticar
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Verificando no Supabase...</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>Entrar e Autenticar</span>
+              </>
+            )}
           </button>
 
           {/* Atalhos para Testes / Demonstração (Somente se existirem atletas) */}

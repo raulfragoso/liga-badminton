@@ -159,6 +159,21 @@ export async function saveSinglePlayerToSupabase(player: Player): Promise<boolea
   }
 }
 
+export async function deletePlayerFromSupabase(playerId: string): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('players').delete().eq('id', playerId);
+    if (error) {
+      console.error('Erro ao deletar atleta do Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Falha ao deletar atleta do Supabase:', err);
+    return false;
+  }
+}
+
 export async function fetchChallengesFromSupabase(): Promise<Challenge[] | null> {
   if (!supabase) return null;
   try {
