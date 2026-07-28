@@ -25,7 +25,6 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('athlete');
-  const [level, setLevel] = useState(1);
   const [wins, setWins] = useState(0);
   const [losses, setLosses] = useState(0);
   const [status, setStatus] = useState<'active' | 'cooldown' | 'injured'>('active');
@@ -38,7 +37,6 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
       setPhone(formatPhoneDisplay(player.phone || ''));
       setPassword(player.password || '123456');
       setRole(player.role || 'athlete');
-      setLevel(player.level || 1);
       setWins(player.wins || 0);
       setLosses(player.losses || 0);
       setStatus(player.status || 'active');
@@ -70,7 +68,7 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
       phone: cleanPhoneDigits || undefined,
       password: password.trim() || '123456',
       role,
-      level: Number(level) || 1,
+      level: player.level || 1, // Calculado unicamente pelo histórico de partidas
       wins: Number(wins),
       losses: Number(losses),
       status,
@@ -173,21 +171,21 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
             </div>
           </div>
 
-          {/* Nível na Pirâmide */}
+          {/* Nível na Pirâmide (Calculado Automaticamente pelo Histórico de Jogos) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Trophy className="w-3.5 h-3.5 text-orange-400" />
-              Nível na Pirâmide {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Somente Admin)</span>}
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-orange-400" />
+                Nível na Pirâmide
+              </span>
+              <span className="text-[10px] text-slate-400 font-normal">Calculado pelo histórico de partidas</span>
             </label>
-            <input
-              type="number"
-              min="1"
-              max="20"
-              disabled={!isAdmin}
-              value={level}
-              onChange={(e) => setLevel(Number(e.target.value))}
-              className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
-            />
+            <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 font-bold flex items-center justify-between">
+              <span>Nível {player.level || 1}</span>
+              <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+                Automático
+              </span>
+            </div>
           </div>
 
           {/* Senha de Acesso */}
