@@ -30,8 +30,19 @@ import {
   LogOut,
   Trash2,
   Download,
-  Upload
+  Upload,
+  Cloud,
+  CloudOff
 } from 'lucide-react';
+import { 
+  isSupabaseConfigured, 
+  fetchPlayersFromSupabase, 
+  saveAllPlayersToSupabase, 
+  fetchChallengesFromSupabase, 
+  saveAllChallengesToSupabase, 
+  subscribeToSupabaseRealtime, 
+  deleteAllDataFromSupabase 
+} from './utils/supabaseClient';
 
 export const App: React.FC = () => {
   // Estado com persistência LocalStorage
@@ -98,15 +109,55 @@ export const App: React.FC = () => {
   // Toast Notificação
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string; type: 'success' | 'warning' } | null>(null);
 
-  // Salvar alterações no localStorage
+  // Sincronização inicial e Realtime com o Supabase (banco em nuvem compartilhado)
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Carregar atletas da nuvem ao iniciar
+    fetchPlayersFromSupabase().then(cloudPlayers => {
+      if (cloudPlayers && cloudPlayers.length > 0) {
+        setPlayers(cloudPlayers);
+        localStorage.setItem('badminton_players', JSON.stringify(cloudPlayers));
+      }
+    });
+
+    // Carregar desafios da nuvem ao iniciar
+    fetchChallengesFromSupabase().then(cloudChallenges => {
+      if (cloudChallenges) {
+        setChallenges(cloudChallenges);
+        localStorage.setItem('badminton_challenges', JSON.stringify(cloudChallenges));
+      }
+    });
+
+    // Assinar atualizações Realtime para atualizar instantaneamente o celular de todos os atletas
+    const unsubscribe = subscribeToSupabaseRealtime(
+      (updatedPlayers) => {
+        setPlayers(updatedPlayers);
+        localStorage.setItem('badminton_players', JSON.stringify(updatedPlayers));
+      },
+      (updatedChallenges) => {
+        setChallenges(updatedChallenges);
+        localStorage.setItem('badminton_challenges', JSON.stringify(updatedChallenges));
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Salvar alterações no localStorage e no Supabase
   useEffect(() => {
     localStorage.setItem('badminton_players', JSON.stringify(players));
+    if (isSupabaseConfigured && players.length > 0) {
+      saveAllPlayersToSupabase(players);
+    }
   }, [players]);
 
   useEffect(() => {
     localStorage.setItem('badminton_challenges', JSON.stringify(challenges));
-    // Sincronizar automaticamente o número real de vitórias/derrotas de todos os atletas
     setPlayers(prevPlayers => recalculatePlayerStats(prevPlayers, challenges));
+    if (isSupabaseConfigured) {
+      saveAllChallengesToSupabase(challenges);
+    }
   }, [challenges]);
 
   useEffect(() => {
@@ -163,6 +214,9 @@ export const App: React.FC = () => {
       localStorage.setItem('badminton_players', JSON.stringify([]));
       localStorage.setItem('badminton_challenges', JSON.stringify([]));
       localStorage.removeItem('badminton_current_user');
+      if (isSupabaseConfigured) {
+        deleteAllDataFromSupabase();
+      }
       showToast('Dados Removidos', 'Todos os registros de atletas e jogos foram completamente limpos da aplicação.', 'warning');
     }
   };
@@ -389,6 +443,32 @@ export const App: React.FC = () => {
 
           {/* Ações Rápidas & Perfil do Usuário */}
           <div className="flex items-center gap-3">
+            {/* Status do Banco em Nuvem (Supabase) */}
+            <div 
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold ${
+                isSupabaseConfigured 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
+              }`}
+              title={
+                isSupabaseConfigured 
+                  ? 'Conectado ao Banco de Dados Compartilhado em Nuvem (Supabase Realtime)' 
+                  : 'Modo Local (Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel para conectar à nuvem)'
+              }
+            >
+              {isSupabaseConfigured ? (
+                <>
+                  <Cloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span className="hidden sm:inline">Nuvem Conectada</span>
+                </>
+              ) : (
+                <>
+                  <CloudOff className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="hidden sm:inline">Modo Local</span>
+                </>
+              )}
+            </div>
+
             {/* Widget de Perfil do Usuário Logado */}
             {currentUser ? (
               <div className="flex items-center gap-2.5 bg-slate-900/90 p-1.5 pr-3 rounded-2xl border border-slate-800">
