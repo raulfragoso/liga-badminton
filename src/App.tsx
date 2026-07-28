@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Challenge, LeagueSettings } from './types/league';
-import { INITIAL_PLAYERS, INITIAL_CHALLENGES, INITIAL_SETTINGS } from './data/initialData';
+import { INITIAL_SETTINGS } from './data/initialData';
 import { PyramidView } from './components/PyramidView';
 import { NewChallengeModal } from './components/NewChallengeModal';
 import { MatchResultModal } from './components/MatchResultModal';
@@ -19,7 +19,7 @@ import {
   Users, 
   BookOpen, 
   Plus, 
-  RotateCcw, 
+  RotateCcw,
   Calendar, 
   Award, 
   Sparkles, 
@@ -28,7 +28,6 @@ import {
   Pencil,
   LogIn,
   LogOut,
-  Trash2,
   Download,
   Upload,
   Cloud,
@@ -43,7 +42,6 @@ import {
   fetchChallengesFromSupabase, 
   saveAllChallengesToSupabase, 
   subscribeToSupabaseRealtime, 
-  deleteAllDataFromSupabase,
   deleteChallengeFromSupabase
 } from './utils/supabaseClient';
 
@@ -187,36 +185,7 @@ export const App: React.FC = () => {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  // Handler para Resetar Dados para a Demonstração Inicial
-  const handleResetData = () => {
-    if (window.confirm('Deseja resetar todos os dados para o estado inicial de demonstração?')) {
-      setPlayers(INITIAL_PLAYERS);
-      setChallenges(INITIAL_CHALLENGES);
-      setSettings(INITIAL_SETTINGS);
-      setCurrentUser(INITIAL_PLAYERS[0]);
-      localStorage.setItem('badminton_players', JSON.stringify(INITIAL_PLAYERS));
-      localStorage.setItem('badminton_challenges', JSON.stringify(INITIAL_CHALLENGES));
-      localStorage.setItem('badminton_settings', JSON.stringify(INITIAL_SETTINGS));
-      localStorage.setItem('badminton_current_user', JSON.stringify(INITIAL_PLAYERS[0]));
-      showToast('Dados Resetados', 'A liga foi restaurada para a demonstração inicial.', 'warning');
-    }
-  };
 
-  // Handler para Remover Todos os Dados da Demonstração Inicial
-  const handleClearAllData = () => {
-    if (window.confirm('Tem certeza que deseja REMOVER TODOS os registros de atletas e jogos da demonstração? A aplicação ficará limpa.')) {
-      setPlayers([]);
-      setChallenges([]);
-      setCurrentUser(null);
-      localStorage.setItem('badminton_players', JSON.stringify([]));
-      localStorage.setItem('badminton_challenges', JSON.stringify([]));
-      localStorage.removeItem('badminton_current_user');
-      if (isSupabaseConfigured) {
-        deleteAllDataFromSupabase();
-      }
-      showToast('Dados Removidos', 'Todos os registros de atletas e jogos foram completamente limpos da aplicação.', 'warning');
-    }
-  };
 
   // Exportar dados da Liga em arquivo JSON
   const handleExportData = () => {
@@ -604,27 +573,7 @@ export const App: React.FC = () => {
               </label>
             )}
 
-            {/* Reset de Demonstração */}
-            {isAdmin && (
-              <button
-                onClick={handleResetData}
-                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs transition-colors"
-                title="Restaurar Dados da Demonstração Inicial"
-              >
-                <RotateCcw className="w-3.5 h-3.5 opacity-60" />
-              </button>
-            )}
-
-            {/* Remover Dados da Demonstração Inicial */}
-            {isAdmin && (
-              <button
-                onClick={handleClearAllData}
-                className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs transition-colors"
-                title="Remover Dados da Demonstração Inicial (Limpar Todos os Registros)"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+            {/* Botões de Ação de Administrador */}
           </div>
         </div>
       </header>
