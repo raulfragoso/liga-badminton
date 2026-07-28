@@ -95,6 +95,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <input
               type="text"
               required
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="username"
               placeholder="Ex: (11) 98765-4321 ou admin"
               value={phone}
               onChange={(e) => {
@@ -120,6 +124,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                autoComplete="current-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => {

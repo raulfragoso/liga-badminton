@@ -130,13 +130,18 @@ export function validateAndAuthenticateUser(
       };
     }
   } else {
-    // Buscar pelo telefone sanitizado
+    // Buscar pelo telefone sanitizado ou nome do atleta
+    const inputLower = trimmedInput.toLowerCase();
     foundPlayer = players.find(p => {
       const playerCleanPhone = sanitizePhone(p.phone || '');
-      return (
-        playerCleanPhone.length > 0 &&
-        (playerCleanPhone === cleanPhone || (cleanPhone.length >= 8 && playerCleanPhone.endsWith(cleanPhone)))
-      );
+      const playerNameLower = (p.name || '').toLowerCase();
+
+      const matchesPhone = playerCleanPhone.length > 0 &&
+        (playerCleanPhone === cleanPhone || (cleanPhone.length >= 8 && playerCleanPhone.endsWith(cleanPhone)));
+
+      const matchesName = playerNameLower === inputLower || playerNameLower.startsWith(inputLower);
+
+      return matchesPhone || matchesName;
     });
   }
 
@@ -145,18 +150,25 @@ export function validateAndAuthenticateUser(
     return {
       success: false,
       user: null,
-      errorMessage: 'Nenhum usuário foi encontrado com este login ou número de telefone.'
+      errorMessage: 'Nenhum usuário foi encontrado com este login, nome ou telefone.'
     };
   }
 
   const isAdminUser = foundPlayer.role === 'admin' || isTargetingAdmin;
 
-  // Validar a senha de acesso (compara a senha digitada com a variável de ambiente, senha do objeto ou fallbacks)
+  // Validar a senha de acesso (tolerante a maiúsculas/minúsculas de teclados de celular)
+  const enteredPassLower = enteredPassword.toLowerCase();
+  const masterPassLower = masterAdminPassword.toLowerCase();
+  const rawEnvPassLower = rawEnvPassword.toLowerCase();
+  const playerPassLower = (foundPlayer.password || '').toLowerCase();
+
   const isValidPassword =
     enteredPassword === masterAdminPassword ||
-    (rawEnvPassword.length > 0 && enteredPassword === rawEnvPassword) ||
+    enteredPassLower === masterPassLower ||
+    (rawEnvPassword.length > 0 && (enteredPassword === rawEnvPassword || enteredPassLower === rawEnvPassLower)) ||
     enteredPassword === foundPlayer.password ||
-    (isAdminUser && (enteredPassword === 'm3t4bad' || enteredPassword === 'admin'));
+    enteredPassLower === playerPassLower ||
+    (isAdminUser && (enteredPassLower === 'm3t4bad' || enteredPassLower === 'admin'));
 
   // Log de depuração no console do navegador (F12) para diagnosticar Vercel env vars
   console.log('[Liga Badminton Auth Debug]', {
