@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Player } from '../types/league';
-import { generateRandomPassword, formatPhoneMask, sanitizePhone } from '../utils/auth';
+import { getDefaultPasswordFromPhone, formatPhoneMask, sanitizePhone } from '../utils/auth';
 import { UserPlus, X, Phone, User, CheckCircle2, Lock, Key } from 'lucide-react';
 
 interface PlayerManagementModalProps {
@@ -31,7 +31,8 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
 
     // Todos os atletas ingressam inicialmente no Nível 1
     const nextRank = players.length + 1;
-    const generatedPass = customPassword.trim() || generateRandomPassword();
+    const defaultPhonePass = getDefaultPasswordFromPhone(cleanPhoneDigits);
+    const generatedPass = customPassword.trim() || defaultPhonePass;
 
     const newPlayer: Player = {
       id: `p-${Date.now()}`,
@@ -54,7 +55,8 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
     onClose();
   };
 
-  const tempPreviewPass = customPassword.trim() || 'MB-XXXX (Gerada automaticamente)';
+  const defaultPhonePassPreview = phone ? getDefaultPasswordFromPhone(phone) : '4 últimos dígitos do fone';
+  const tempPreviewPass = customPassword.trim() || `${defaultPhonePassPreview} (Senha padrão do fone)`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
@@ -114,11 +116,11 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-orange-400" />
-              Senha de Acesso (Opcional - Gerada automaticamente se vazia)
+              Senha de Acesso (Padrão: 4 últimos dígitos do telefone)
             </label>
             <input
               type="text"
-              placeholder="Deixe em branco para gerar aleatória"
+              placeholder="Deixe em branco para usar os 4 últimos dígitos do fone"
               value={customPassword}
               onChange={(e) => setCustomPassword(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-mono"

@@ -38,10 +38,25 @@ export function formatPhoneDisplay(phone: string = ''): string {
 }
 
 /**
- * Gera uma senha aleatória para envio ao atleta.
- * Exemplo de formato: MB-7842
+ * Extrai os 4 últimos dígitos do telefone para usar como senha padrão de novos atletas.
+ * Exemplo: "(11) 98765-4321" -> "4321"
  */
-export function generateRandomPassword(): string {
+export function getDefaultPasswordFromPhone(phone: string = ''): string {
+  const digits = sanitizePhone(phone);
+  if (digits.length >= 4) {
+    return digits.slice(-4);
+  }
+  return digits || '1234';
+}
+
+/**
+ * Gera uma senha aleatória para envio ao atleta (ou usa os 4 últimos dígitos se fornecido).
+ */
+export function generateRandomPassword(phone?: string): string {
+  if (phone) {
+    const defaultPass = getDefaultPasswordFromPhone(phone);
+    if (defaultPass) return defaultPass;
+  }
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = 'MB-';
   for (let i = 0; i < 4; i++) {
