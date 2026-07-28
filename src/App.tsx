@@ -431,9 +431,6 @@ export const App: React.FC = () => {
             <div>
               <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
                 Liga de Badminton
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/40">
-                  Maylson Campos
-                </span>
               </h1>
               <p className="text-xs text-slate-400">Sistema Oficial de Desafios e Ranking em Pirâmide</p>
             </div>
