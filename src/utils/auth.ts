@@ -1,5 +1,4 @@
 import { Player } from '../types/league';
-import { INITIAL_PLAYERS } from '../data/initialData';
 
 export interface AuthResult {
   success: boolean;
@@ -83,8 +82,7 @@ export function validateAndAuthenticateUser(
   phoneInput: string,
   passwordInput: string
 ): AuthResult {
-  // Garante que haja atletas para pesquisar (usa INITIAL_PLAYERS se o banco/memória estiverem vazios)
-  const targetPlayersList = (players && players.length > 0) ? players : INITIAL_PLAYERS;
+  const targetPlayersList = players || [];
 
   const trimmedInput = (phoneInput || '').trim();
   const cleanPhone = sanitizePhone(phoneInput);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Challenge, LeagueSettings } from './types/league';
-import { INITIAL_PLAYERS, INITIAL_SETTINGS } from './data/initialData';
+import { INITIAL_SETTINGS } from './data/initialData';
 import { PyramidView } from './components/PyramidView';
 import { NewChallengeModal } from './components/NewChallengeModal';
 import { MatchResultModal } from './components/MatchResultModal';
@@ -51,13 +51,12 @@ export const App: React.FC = () => {
     const saved = localStorage.getItem('badminton_players');
     if (saved !== null) {
       try {
-        const loaded: Player[] = JSON.parse(saved);
-        if (loaded.length > 0) return loaded;
+        return JSON.parse(saved);
       } catch (e) {
-        return INITIAL_PLAYERS;
+        return [];
       }
     }
-    return INITIAL_PLAYERS;
+    return [];
   });
 
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
