@@ -103,6 +103,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {!isSupabaseConfigured && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-bold text-amber-200 block">Modo Local (Nuvem não conectada):</span>
+                <span>
+                  Para que os atletas cadastrados no computador apareçam no celular, é necessário adicionar as variáveis <strong>VITE_SUPABASE_URL</strong> e <strong>VITE_SUPABASE_ANON_KEY</strong> na Vercel.
+                </span>
+              </div>
+            </div>
+          )}
+
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
