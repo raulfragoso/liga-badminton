@@ -239,6 +239,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Botão de Limpeza do Cache Local do Navegador */}
+          <div className="pt-3 border-t border-slate-800/60 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Deseja realmente limpar todos os dados e cache salvos neste navegador/dispositivo?')) {
+                  localStorage.clear();
+                  if ('caches' in window) {
+                    caches.keys().then(names => {
+                      names.forEach(name => caches.delete(name));
+                    });
+                  }
+                  window.location.reload();
+                }
+              }}
+              className="text-[11px] text-slate-400 hover:text-rose-400 transition-colors underline cursor-pointer"
+            >
+              🧹 Limpar dados e cache salvos neste dispositivo
+            </button>
+          </div>
         </form>
       </div>
     </div>
