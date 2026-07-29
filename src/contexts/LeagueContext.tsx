@@ -36,9 +36,6 @@ interface LeagueContextProps {
   handleLoginSuccess: (user: Player) => void;
   handleLogout: () => void;
 
-  activeTab: 'pyramid' | 'levels' | 'history' | 'players';
-  setActiveTab: React.Dispatch<React.SetStateAction<'pyramid' | 'levels' | 'history' | 'players'>>;
-
   // Modal states
   isNewChallengeModalOpen: boolean;
   setIsNewChallengeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -104,7 +101,6 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [activeTab, setActiveTab] = useState<'pyramid' | 'levels' | 'history' | 'players'>('levels');
 
   const [isNewChallengeModalOpen, setIsNewChallengeModalOpen] = useState(false);
   const [isMatchResultModalOpen, setIsMatchResultModalOpen] = useState(false);
@@ -303,7 +299,6 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
       value={{
         players, setPlayers, challenges, setChallenges, settings, setSettings,
         currentUser, setCurrentUser, isAdmin, handleLoginSuccess, handleLogout,
-        activeTab, setActiveTab,
         isNewChallengeModalOpen, setIsNewChallengeModalOpen,
         isMatchResultModalOpen, setIsMatchResultModalOpen,
         isPlayerModalOpen, setIsPlayerModalOpen,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { PyramidView } from './components/PyramidView';
 import { LevelListView } from './components/LevelListView';
 import { NewChallengeModal } from './components/NewChallengeModal';
@@ -20,7 +21,7 @@ import { useLeague } from './contexts/LeagueContext';
 
 export const App: React.FC = () => {
   const {
-    players, challenges, settings, activeTab, toastMessage
+    players, challenges, settings, toastMessage
   } = useLeague();
   
   const leagueLeader = getLeagueLeader(players);
@@ -97,22 +98,14 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="animate-slideUp">
-              {activeTab === 'pyramid' && (
-                <PyramidView />
-              )}
-
-              {activeTab === 'levels' && (
-                <LevelListView />
-              )}
-              
-              {activeTab === 'history' && (
-                <MatchHistory />
-              )}
-
-              {activeTab === 'players' && (
-                <PlayersView />
-              )}
+            <div className="animate-fadeIn">
+              <Routes>
+                <Route path="/" element={<PyramidView />} />
+                <Route path="/levels" element={<LevelListView />} />
+                <Route path="/history" element={<MatchHistory />} />
+                <Route path="/players" element={<PlayersView />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
           </div>
         </div>
       </main>

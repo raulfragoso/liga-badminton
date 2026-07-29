@@ -3,6 +3,7 @@ import {
   Download, Upload, Layers, Trophy, Swords, Users 
 } from 'lucide-react';
 import { Button } from './ui/Button';
+import { NavLink } from 'react-router-dom';
 
 import { useLeague } from '../contexts/LeagueContext';
 
@@ -10,8 +11,6 @@ export function Header() {
   const {
     currentUser,
     isAdmin,
-    activeTab,
-    setActiveTab,
     challenges,
     players,
     handleLogout,
@@ -151,53 +150,53 @@ export function Header() {
         {currentUser && (
           <div className="hidden sm:flex items-center justify-start overflow-x-auto pt-1 border-t border-slate-900/90 no-scrollbar">
             <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80">
-              <button
-                onClick={() => setActiveTab('levels')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeTab === 'levels'
+              <NavLink
+                to="/levels"
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
                     ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 Lista por Níveis
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('pyramid')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeTab === 'pyramid'
+              <NavLink
+                to="/"
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
                     ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Trophy className="w-3.5 h-3.5" />
                 Pirâmide
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeTab === 'history'
+              <NavLink
+                to="/history"
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
                     ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Swords className="w-3.5 h-3.5" />
                 Desafios ({challenges.filter(c => c.status === 'pending').length})
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('players')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeTab === 'players'
+              <NavLink
+                to="/players"
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
                     ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
                 Atletas ({players.length})
-              </button>
+              </NavLink>
             </nav>
           </div>
         )}
