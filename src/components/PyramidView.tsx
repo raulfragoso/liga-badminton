@@ -71,7 +71,7 @@ export const PyramidView: React.FC = () => {
   return (
     <div className="w-full flex flex-col items-center gap-8 py-4">
       {/* Banner Informativo do Regulamento da Pirâmide */}
-      <div className="w-full max-w-5xl glass-panel rounded-2xl p-4 md:p-6 border border-orange-500/30 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="w-full max-w-5xl glass-panel rounded-2xl p-4 md:p-6 border border-orange-500/30 bg-slate-900/60 hidden md:flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-orange-500/10 rounded-xl border border-orange-500/30 text-orange-400">
             <Trophy className="w-8 h-8" />
