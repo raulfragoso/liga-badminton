@@ -273,7 +273,8 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
     }
   });
 
-  return players.map(p => {
+  // Mapear estatísticas calculadas para cada atleta
+  const computedList = players.map(p => {
     const s = stateMap.get(p.id) || { level: 1, wins: 0, losses: 0, pointsScored: 0, pointsConceded: 0 };
     const pointDiff = s.pointsScored - s.pointsConceded;
 
@@ -287,6 +288,34 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
       pointDiff
     };
   });
+
+  // Ordenar atletas pela classificação oficial da liga para atribuir o Rank real (1, 2, 3, 4...)
+  computedList.sort((a, b) => {
+    // 1. Nível (Maior nível fica no topo)
+    if (b.level !== a.level) return b.level - a.level;
+
+    // 2. Vitórias (Número de jogos ganhos)
+    if (b.wins !== a.wins) return b.wins - a.wins;
+
+    // 3. Saldo de Pontos Acumulados
+    const diffA = a.pointDiff || 0;
+    const diffB = b.pointDiff || 0;
+    if (diffB !== diffA) return diffB - diffA;
+
+    // 4. Total de pontos marcados
+    const scoredA = a.pointsScored || 0;
+    const scoredB = b.pointsScored || 0;
+    if (scoredB !== scoredA) return scoredB - scoredA;
+
+    // 5. Ordem alfabética pelo nome como desempate final
+    return a.name.localeCompare(b.name);
+  });
+
+  // Atribuir rank sequencial único (Rank #1, Rank #2, Rank #3...)
+  return computedList.map((player, index) => ({
+    ...player,
+    rank: index + 1
+  }));
 }
 
 /**
