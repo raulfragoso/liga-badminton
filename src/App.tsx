@@ -32,8 +32,6 @@ import {
   LogOut,
   Download,
   Upload,
-  Cloud,
-  CloudOff,
   Lock,
   ShieldCheck
 } from 'lucide-react';
@@ -493,31 +491,6 @@ export const App: React.FC = () => {
 
           {/* Ações Rápidas & Perfil do Usuário */}
           <div className="flex items-center gap-3">
-            {/* Status do Banco em Nuvem (Supabase) */}
-            <div 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold ${
-                isSupabaseConfigured 
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                  : 'bg-slate-900 text-slate-400 border-slate-800'
-              }`}
-              title={
-                isSupabaseConfigured 
-                  ? 'Conectado ao Banco de Dados Compartilhado em Nuvem (Supabase Realtime)' 
-                  : 'Modo Local (Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel para conectar à nuvem)'
-              }
-            >
-              {isSupabaseConfigured ? (
-                <>
-                  <Cloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                  <span className="hidden sm:inline">Nuvem Conectada</span>
-                </>
-              ) : (
-                <>
-                  <CloudOff className="w-3.5 h-3.5 text-slate-500" />
-                  <span className="hidden sm:inline">Modo Local</span>
-                </>
-              )}
-            </div>
 
             {/* Widget de Perfil do Usuário Logado */}
             {currentUser ? (
