@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 import { Player } from '../types/league';
 import { validateAndAuthenticateUser, formatPhoneMask } from '../utils/auth';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 import { fetchPlayersFromSupabase, isSupabaseConfigured } from '../utils/supabaseClient';
 import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  players: Player[];
-  onLoginSuccess: (user: Player) => void;
-  onUpdatePlayers?: (players: Player[]) => void;
-}
+export const LoginModal: React.FC = () => {
+  const {
+    isLoginModalOpen: isOpen,
+    setIsLoginModalOpen,
+    players,
+    handleLoginSuccess,
+    setPlayers
+  } = useLeague();
 
-export const LoginModal: React.FC<LoginModalProps> = ({
-  isOpen,
-  onClose,
-  players,
-  onLoginSuccess,
-  onUpdatePlayers,
-}) => {
+  const onClose = () => setIsLoginModalOpen(false);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,9 +39,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         const cloudPlayers = await fetchPlayersFromSupabase();
         if (cloudPlayers && cloudPlayers.length > 0) {
           currentPlayers = cloudPlayers;
-          if (onUpdatePlayers) {
-            onUpdatePlayers(cloudPlayers);
-          }
+          setPlayers(cloudPlayers);
           authResult = validateAndAuthenticateUser(currentPlayers, phone, password);
         }
       } catch (err) {
@@ -54,7 +50,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setIsSubmitting(false);
 
     if (authResult.success && authResult.user) {
-      onLoginSuccess(authResult.user);
+      handleLoginSuccess(authResult.user);
       onClose();
     } else {
       setErrorMessage(authResult.errorMessage || 'Falha na autenticação. Verifique os dados informados.');
@@ -71,7 +67,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     const authResult = validateAndAuthenticateUser(players, player.phone || '', userPass);
     if (authResult.success && authResult.user) {
-      onLoginSuccess(authResult.user);
+      handleLoginSuccess(authResult.user);
       onClose();
     }
   };
@@ -93,27 +89,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <p className="text-xs text-slate-400">Autenticação com Telefone e Senha</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {!isSupabaseConfigured && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="font-bold text-amber-200 block">Modo Local (Nuvem não conectada):</span>
-                <span>
-                  Para que os atletas cadastrados no computador apareçam no celular, é necessário adicionar as variáveis <strong>VITE_SUPABASE_URL</strong> e <strong>VITE_SUPABASE_ANON_KEY</strong> na Vercel.
-                </span>
-              </div>
-            </div>
-          )}
 
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5">
@@ -123,70 +109,62 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           )}
 
           {/* Telefone ou Login */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-orange-400" />
-              Telefone ou Login ("admin")
-            </label>
-            <input
-              type="text"
-              required
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              autoComplete="username"
-              placeholder="Ex: (11) 98765-4321 ou admin"
-              value={phone}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (/^\d/.test(val) || val.startsWith('(')) {
-                  setPhone(formatPhoneMask(val));
-                } else {
-                  setPhone(val);
-                }
-                if (errorMessage) setErrorMessage('');
-              }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-medium"
-            />
-          </div>
+          <Input
+            label="Telefone ou Login ('admin')"
+            leftIcon={<User className="w-4 h-4" />}
+            type="text"
+            required
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="username"
+            placeholder="Ex: (11) 98765-4321 ou admin"
+            value={phone}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (/^\d/.test(val) || val.startsWith('(')) {
+                setPhone(formatPhoneMask(val));
+              } else {
+                setPhone(val);
+              }
+              if (errorMessage) setErrorMessage('');
+            }}
+          />
 
           {/* Senha com alternador de visibilidade */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-orange-400" />
-              Senha de Acesso
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errorMessage) setErrorMessage('');
-                }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 pr-10 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-mono"
-              />
+          <Input
+            label="Senha de Acesso"
+            leftIcon={<Lock className="w-4 h-4" />}
+            type={showPassword ? 'text' : 'password'}
+            required
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errorMessage) setErrorMessage('');
+            }}
+            rightIcon={
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer pointer-events-auto"
                 title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
-            </div>
-          </div>
+            }
+          />
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 mt-2"
+            fullWidth
+            size="lg"
+            className="mt-2 text-sm"
           >
             {isSubmitting ? (
               <>
@@ -199,7 +177,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <span>Entrar e Autenticar</span>
               </>
             )}
-          </button>
+          </Button>
 
           {/* Atalhos para Testes / Demonstração (Somente se existirem atletas) */}
           {(adminPlayer || athletePlayer) && (

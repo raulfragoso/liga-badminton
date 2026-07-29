@@ -1,11 +1,12 @@
 import { X, Award, ShieldAlert, Swords, Clock, CheckCircle } from 'lucide-react';
+import { Button } from './ui/Button';
 
-interface RulesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useLeague } from '../contexts/LeagueContext';
 
-export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
+export const RulesModal: React.FC = () => {
+  const { isRulesModalOpen: isOpen, setIsRulesModalOpen } = useLeague();
+  const onClose = () => setIsRulesModalOpen(false);
+  
   if (!isOpen) return null;
 
   return (
@@ -22,12 +23,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
               <p className="text-xs text-slate-400">Complexo Esportivo Maylson Campos</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Conteúdo com Scroll */}
@@ -112,12 +114,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
 
         {/* Rodapé */}
         <div className="p-4 border-t border-slate-800 bg-slate-900/80 flex justify-end shrink-0">
-          <button
+          <Button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-md transition-colors"
+            size="lg"
+            className="text-xs px-5 py-2"
           >
             Entendi as Regras
-          </button>
+          </Button>
         </div>
       </div>
     </div>

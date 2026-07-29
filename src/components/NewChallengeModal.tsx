@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Player, Challenge } from '../types/league';
+import { Challenge } from '../types/league';
 import { validateNewChallenge } from '../utils/leagueRules';
 import { sendWhatsappNotification } from '../utils/notifications';
 import { Swords, X, AlertTriangle, CheckCircle2, Calendar, Clock, FileText, Zap, MessageSquare } from 'lucide-react';
-
-interface NewChallengeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  players: Player[];
-  challenges: Challenge[];
-  currentWeek: number;
-  currentUser?: Player | null;
-  preselectedChallenger?: Player | null;
-  preselectedChallenged?: Player | null;
-  onSaveChallenge: (newChallenge: Challenge) => void;
-}
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
+import { useLeague } from '../contexts/LeagueContext';
 
 // Helper para formatar data local no formato YYYY-MM-DDTHH:mm
 function toLocalISOString(date: Date): string {
@@ -41,17 +33,22 @@ function formatDateTimePtBR(dateTimeStr: string): string {
   return `${capitalizedWeekday}, ${dayMonthYear} às ${hoursMinutes}`;
 }
 
-export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
-  isOpen,
-  onClose,
-  players,
-  challenges,
-  currentWeek,
-  currentUser,
-  preselectedChallenger,
-  preselectedChallenged,
-  onSaveChallenge,
-}) => {
+export const NewChallengeModal: React.FC = () => {
+  const {
+    isNewChallengeModalOpen: isOpen,
+    setIsNewChallengeModalOpen,
+    players,
+    challenges,
+    settings,
+    currentUser,
+    preselectedChallenger,
+    preselectedChallenged,
+    handleSaveChallenge: onSaveChallenge
+  } = useLeague();
+  
+  const currentWeek = settings.currentWeek;
+  const onClose = () => setIsNewChallengeModalOpen(false);
+
   const [challengerId, setChallengerId] = useState<string>('');
   const [challengedId, setChallengedId] = useState<string>('');
   const [sendNotification, setSendNotification] = useState<boolean>(true); // Checado por padrão por solicitação do usuário
@@ -191,12 +188,13 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
               <p className="text-xs text-slate-400">Semana {currentWeek} • Regulamento Oficial</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Formulário */}
@@ -213,50 +211,38 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
           )}
 
           {/* Seleção do Desafiante */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Desafiante (Quem está desafiando)
-            </label>
-            <select
-              value={challengerId}
-              onChange={(e) => {
-                setChallengerId(e.target.value);
-                setValidationError(null);
-              }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition-colors"
-            >
-              <option value="">Selecione um atleta...</option>
-              {sortedPlayers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  #{p.rank} (Nível {p.level}) - {p.name} {p.status === 'cooldown' ? '⛔ [Suspenso]' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Desafiante (Quem está desafiando)"
+            value={challengerId}
+            onChange={(e) => {
+              setChallengerId(e.target.value);
+              setValidationError(null);
+            }}
+            options={[
+              { value: '', label: 'Selecione um atleta...' },
+              ...sortedPlayers.map(p => ({
+                value: p.id,
+                label: `#${p.rank} (Nível ${p.level}) - ${p.name} ${p.status === 'cooldown' ? '⛔ [Suspenso]' : ''}`
+              }))
+            ]}
+          />
 
           {/* Seleção do Desafiado */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Desafiado (Adversário a ser desafiado)
-            </label>
-            <select
-              value={challengedId}
-              onChange={(e) => {
-                setChallengedId(e.target.value);
-                setValidationError(null);
-              }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition-colors"
-            >
-              <option value="">Selecione o adversário...</option>
-              {sortedPlayers
-                .filter((p) => p.id !== challengerId)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    #{p.rank} (Nível {p.level}) - {p.name}
-                  </option>
-                ))}
-            </select>
-          </div>
+          <Select
+            label="Desafiado (Adversário a ser desafiado)"
+            value={challengedId}
+            onChange={(e) => {
+              setChallengedId(e.target.value);
+              setValidationError(null);
+            }}
+            options={[
+              { value: '', label: 'Selecione o adversário...' },
+              ...sortedPlayers.filter(p => p.id !== challengerId).map(p => ({
+                value: p.id,
+                label: `#${p.rank} (Nível ${p.level}) - ${p.name}`
+              }))
+            ]}
+          />
 
           {/* Widget de Seleção da Data e Horário */}
           <div className="space-y-2 pt-1">
@@ -278,7 +264,7 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
                 required
                 value={scheduledDateTime}
                 onChange={(e) => setScheduledDateTime(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-medium"
+                className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 hover:border-slate-600 font-medium"
               />
             </div>
 
@@ -330,19 +316,14 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
           </div>
 
           {/* Observações / Quadra */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-orange-400" />
-              Observações (Quadra / Detalhes)
-            </label>
-            <input
-              type="text"
-              placeholder="Ex: Quadra 1 - Iluminação Ok"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-            />
-          </div>
+          <Input
+            label="Observações (Quadra / Detalhes)"
+            leftIcon={<FileText className="w-4 h-4" />}
+            type="text"
+            placeholder="Ex: Quadra 1 - Iluminação Ok"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
 
           {/* Caixa de Seleção: Notificação no WhatsApp (Checada por Padrão) */}
           <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
@@ -365,20 +346,17 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
 
           {/* Botões de Ação */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800 shrink-0">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
             >
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/20 transition-all flex items-center gap-2"
-            >
+            </Button>
+            <Button type="submit">
               <CheckCircle2 className="w-4 h-4" />
               Confirmar Desafio
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Player, UserRole } from '../types/league';
+import { UserRole } from '../types/league';
 import { generateRandomPassword, formatPhoneMask, formatPhoneDisplay, sanitizePhone } from '../utils/auth';
-import { UserCheck, X, Phone, User, CheckCircle2, Trash2, ShieldAlert, Trophy, Lock, Key, ShieldCheck } from 'lucide-react';
+import { UserCheck, X, Phone, User, CheckCircle2, Trash2, ShieldAlert, Trophy, Lock, Key } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface EditPlayerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  player: Player | null;
-  currentUser?: Player | null;
-  onSavePlayer: (updatedPlayer: Player) => void;
-  onDeletePlayer?: (playerId: string) => void;
-}
-
-export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
-  isOpen,
-  onClose,
-  player,
-  currentUser,
-  onSavePlayer,
-  onDeletePlayer,
-}) => {
+export const EditPlayerModal: React.FC = () => {
+  const { 
+    isEditPlayerModalOpen: isOpen, 
+    setIsEditPlayerModalOpen, 
+    selectedPlayerToEdit: player, 
+    handleSavePlayer, 
+    handleDeletePlayer, 
+    currentUser 
+  } = useLeague();
+  
+  const onClose = () => setIsEditPlayerModalOpen(false);
   const isAdmin = currentUser?.role === 'admin';
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -62,13 +61,13 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
 
     const cleanPhoneDigits = sanitizePhone(phone);
 
-    const updatedPlayer: Player = {
+    const updatedPlayer = {
       ...player,
       name: name.trim(),
       phone: cleanPhoneDigits || undefined,
       password: password.trim() || '123456',
       role,
-      level: player.level || 1, // Calculado unicamente pelo histórico de partidas
+      level: player.level || 1,
       wins: Number(wins),
       losses: Number(losses),
       status,
@@ -76,16 +75,14 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
       cooldownReason: status === 'cooldown' ? cooldownReason : undefined
     };
 
-    onSavePlayer(updatedPlayer);
+    handleSavePlayer(updatedPlayer);
     onClose();
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Tem certeza que deseja remover o atleta ${player.name} da liga?`)) {
-      if (onDeletePlayer) {
-        onDeletePlayer(player.id);
-        onClose();
-      }
+    if (window.confirm(`Tem certeza que deseja excluir o atleta ${player.name}?`)) {
+      handleDeletePlayer(player.id);
+      onClose();
     }
   };
 
@@ -105,12 +102,13 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
               </p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Formulário */}
@@ -123,55 +121,41 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
           )}
 
           {/* Nome Completo */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-orange-400" />
-              Nome Completo
-            </label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-            />
-          </div>
+          <Input
+            label="Nome Completo"
+            leftIcon={<User className="w-4 h-4" />}
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
           {/* Telefone e Tipo de Perfil */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-orange-400" />
-                Telefone (Login)
-              </label>
-              <input
-                type="text"
-                maxLength={15}
-                placeholder="(11) 99999-9999"
-                value={phone}
-                onChange={(e) => setPhone(formatPhoneMask(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-medium"
-              />
-            </div>
+            <Input
+              label="Telefone (Login)"
+              leftIcon={<Phone className="w-4 h-4" />}
+              type="text"
+              maxLength={15}
+              placeholder="(11) 99999-9999"
+              value={phone}
+              onChange={(e) => setPhone(formatPhoneMask(e.target.value))}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                Tipo de Usuário
-              </label>
-              <select
-                disabled={!isAdmin}
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
-              >
-                <option value="athlete">Atleta Participante</option>
-                <option value="admin">👑 Administrador</option>
-              </select>
-            </div>
+            <Select
+              label="Tipo de Usuário"
+              disabled={!isAdmin}
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              options={[
+                { value: 'athlete', label: 'Atleta Participante' },
+                { value: 'admin', label: '👑 Administrador' }
+              ]}
+              className={!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}
+            />
           </div>
 
-          {/* Nível na Pirâmide (Calculado Automaticamente pelo Histórico de Jogos) */}
+          {/* Nível na Pirâmide */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -189,60 +173,48 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
           </div>
 
           {/* Senha de Acesso */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-orange-400" />
-                Senha de Acesso
-              </span>
-              <button
-                type="button"
-                onClick={handleGeneratePassword}
-                className="text-[11px] text-orange-400 hover:text-orange-300 flex items-center gap-1 font-normal underline"
-              >
-                <Key className="w-3 h-3" /> Gerar Nova Senha
-              </button>
-            </label>
-            <input
+          <div className="relative">
+            <Input
+              label="Senha de Acesso"
+              leftIcon={<Lock className="w-4 h-4" />}
               type="text"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 font-mono focus:outline-none focus:border-orange-500"
+              className="font-mono"
             />
+            <button
+              type="button"
+              onClick={handleGeneratePassword}
+              className="absolute right-0 top-0 text-[11px] text-orange-400 hover:text-orange-300 flex items-center gap-1 font-normal underline z-10"
+            >
+              <Key className="w-3 h-3" /> Gerar Nova Senha
+            </button>
           </div>
 
           {/* Vitórias e Derrotas */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5 text-orange-400" />
-                Vitórias {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Automático)</span>}
-              </label>
-              <input
-                type="number"
-                min="0"
-                disabled={!isAdmin}
-                value={wins}
-                onChange={(e) => setWins(Number(e.target.value))}
-                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
-              />
-            </div>
+            <Input
+              label="Vitórias"
+              leftIcon={<Trophy className="w-4 h-4" />}
+              type="number"
+              min="0"
+              disabled={!isAdmin}
+              value={wins}
+              onChange={(e) => setWins(Number(e.target.value))}
+              className={`font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <X className="w-3.5 h-3.5 text-rose-400" />
-                Derrotas {!isAdmin && <span className="text-[10px] text-slate-500 font-normal">(Automático)</span>}
-              </label>
-              <input
-                type="number"
-                min="0"
-                disabled={!isAdmin}
-                value={losses}
-                onChange={(e) => setLosses(Number(e.target.value))}
-                className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
-              />
-            </div>
+            <Input
+              label="Derrotas"
+              leftIcon={<X className="w-4 h-4" />}
+              type="number"
+              min="0"
+              disabled={!isAdmin}
+              value={losses}
+              onChange={(e) => setLosses(Number(e.target.value))}
+              className={`font-bold ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
+            />
           </div>
 
           {/* Status do Atleta */}
@@ -327,7 +299,7 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
 
           {/* Botões de Ação */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-800 shrink-0">
-            {isAdmin && onDeletePlayer ? (
+            {isAdmin ? (
               <button
                 type="button"
                 onClick={handleDelete}
@@ -339,20 +311,17 @@ export const EditPlayerModal: React.FC<EditPlayerModalProps> = ({
             ) : <div />}
 
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
               >
                 Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/20 transition-all flex items-center gap-2"
-              >
+              </Button>
+              <Button type="submit">
                 <CheckCircle2 className="w-4 h-4" />
                 Salvar Alterações
-              </button>
+              </Button>
             </div>
           </div>
         </form>

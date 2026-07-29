@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
-import { Player, Challenge } from '../types/league';
+import { Player } from '../types/league';
 import { 
   Layers, 
   Search, 
-  Swords, 
+  Swords,
   ShieldCheck, 
   Phone, 
   Medal, 
   SlidersHorizontal
 } from 'lucide-react';
 import { formatPhoneDisplay } from '../utils/auth';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface LevelListViewProps {
-  players: Player[];
-  challenges: Challenge[];
-  currentUser?: Player | null;
-  onSelectPlayerToChallenge?: (player: Player) => void;
-  onOpenPlayerDetails?: (player: Player) => void;
-}
+export const LevelListView: React.FC = () => {
+  const {
+    players,
+    currentUser,
+    setPreselectedChallenged,
+    setIsNewChallengeModalOpen,
+    setSelectedPlayerToEdit,
+    setIsEditPlayerModalOpen
+  } = useLeague();
 
-export const LevelListView: React.FC<LevelListViewProps> = ({
-  players,
-  currentUser,
-  onSelectPlayerToChallenge,
-  onOpenPlayerDetails,
-}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<number | 'all'>('all');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // desc: Nível mais alto primeiro (Topo -> Base)
@@ -266,18 +263,24 @@ export const LevelListView: React.FC<LevelListViewProps> = ({
 
                         {/* Botões de Ação */}
                         <div className="flex items-center gap-2 pt-1 border-t border-slate-900">
-                          {canChallenge && onSelectPlayerToChallenge && (
+                          {canChallenge && (
                             <button
-                              onClick={() => onSelectPlayerToChallenge(player)}
+                              onClick={() => {
+                                setPreselectedChallenged(player);
+                                setIsNewChallengeModalOpen(true);
+                              }}
                               className="flex-1 py-1.5 px-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 transition-colors"
                             >
                               <Swords className="w-3.5 h-3.5" /> Desafiar
                             </button>
                           )}
 
-                          {(isAdmin || isCurrentUser) && onOpenPlayerDetails && (
+                          {(isAdmin || isCurrentUser) && (
                             <button
-                              onClick={() => onOpenPlayerDetails(player)}
+                              onClick={() => {
+                                setSelectedPlayerToEdit(player);
+                                setIsEditPlayerModalOpen(true);
+                              }}
                               className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl text-xs font-semibold transition-colors"
                               title="Editar Dados do Atleta"
                             >

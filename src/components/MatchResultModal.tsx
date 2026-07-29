@@ -1,30 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Challenge, Player, GameScore, ChallengeStatus } from '../types/league';
+import { Challenge, GameScore, ChallengeStatus } from '../types/league';
 import { processMatchOutcome } from '../utils/leagueRules';
 import confetti from 'canvas-confetti';
 import { Trophy, X, Check, Trash2 } from 'lucide-react';
+import { Button } from './ui/Button';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface MatchResultModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  challenge: Challenge | null;
-  players: Player[];
-  onCompleteMatch: (
-    completedChallenge: Challenge,
-    updatedPlayers: Player[],
-    summaryMessage: string
-  ) => void;
-  onDeleteChallenge?: (challengeId: string) => void;
-}
+export const MatchResultModal: React.FC = () => {
+  const {
+    isMatchResultModalOpen: isOpen,
+    setIsMatchResultModalOpen,
+    selectedChallengeToResolve: challenge,
+    players,
+    handleCompleteMatch,
+    handleDeleteChallenge,
+    isAdmin
+  } = useLeague();
 
-export const MatchResultModal: React.FC<MatchResultModalProps> = ({
-  isOpen,
-  onClose,
-  challenge,
-  players,
-  onCompleteMatch,
-  onDeleteChallenge,
-}) => {
+  const onClose = () => setIsMatchResultModalOpen(false);
+
   const [matchType, setMatchType] = useState<'normal' | 'wo_challenged' | 'wo_challenger' | 'refuse'>('normal');
   const [game1Challenger, setGame1Challenger] = useState<number>(21);
   const [game1Challenged, setGame1Challenged] = useState<number>(18);
@@ -125,7 +119,6 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
       resultSummary: summaryMessage
     };
 
-    // Disparar confetes se houve vitória / promoção do desafiante!
     if (winnerId === challenge.challengerId) {
       confetti({
         particleCount: 100,
@@ -134,14 +127,13 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
       });
     }
 
-    onCompleteMatch(completedChallenge, updatedPlayers, summaryMessage);
+    handleCompleteMatch(completedChallenge, updatedPlayers, summaryMessage);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
       <div className="w-full max-w-xl glass-panel rounded-2xl border border-slate-700 bg-slate-900/90 shadow-2xl overflow-hidden">
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-900/50">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-orange-500/10 rounded-xl border border-orange-500/30 text-orange-400">
@@ -158,17 +150,16 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
               </p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
-        {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Card dos Atletas */}
           <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-center">
             <div className="flex flex-col items-center">
               <span className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold mb-1">
@@ -187,7 +178,6 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
             </div>
           </div>
 
-          {/* Seleção do Tipo de Conclusão */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Status da Partida
@@ -240,14 +230,12 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
             </div>
           </div>
 
-          {/* Entradas de Placar por Game (se Conclusão Normal) */}
           {matchType === 'normal' && (
             <div className="space-y-4 pt-2">
               <span className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 Placar dos Games (Regra da FEBASP)
               </span>
 
-              {/* Game 1 */}
               <div className="flex items-center justify-between gap-4 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                 <span className="text-xs font-bold text-slate-300 w-16">Game 1:</span>
                 <div className="flex items-center gap-3">
@@ -271,7 +259,6 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
                 </div>
               </div>
 
-              {/* Game 2 */}
               <div className="flex items-center justify-between gap-4 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                 <span className="text-xs font-bold text-slate-300 w-16">Game 2:</span>
                 <div className="flex items-center gap-3">
@@ -295,7 +282,6 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
                 </div>
               </div>
 
-              {/* Game 3 Opcional */}
               {hasGame3 ? (
                 <div className="flex items-center justify-between gap-4 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                   <span className="text-xs font-bold text-slate-300 w-16">Game 3 (Desempate):</span>
@@ -331,14 +317,13 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
             </div>
           )}
 
-          {/* Botões de Ação */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-            {onDeleteChallenge && challenge?.status === 'pending' ? (
+            {isAdmin && challenge?.status === 'pending' ? (
               <button
                 type="button"
                 onClick={() => {
                   if (window.confirm(`Tem certeza que deseja cancelar e apagar o desafio entre ${challenge.challengerName} e ${challenge.challengedName}?`)) {
-                    onDeleteChallenge(challenge.id);
+                    handleDeleteChallenge(challenge.id);
                     onClose();
                   }
                 }}
@@ -350,20 +335,17 @@ export const MatchResultModal: React.FC<MatchResultModalProps> = ({
             ) : <div />}
 
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
               >
                 Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/20 transition-all flex items-center gap-2"
-              >
+              </Button>
+              <Button type="submit">
                 <Check className="w-4 h-4" />
                 Finalizar Jogo e Atualizar Pirâmide
-              </button>
+              </Button>
             </div>
           </div>
         </form>

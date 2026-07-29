@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
-import { Challenge, Player } from '../types/league';
+import { Challenge } from '../types/league';
 import { sendWhatsappNotification } from '../utils/notifications';
 import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare, Trash2 } from 'lucide-react';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface MatchHistoryProps {
-  challenges: Challenge[];
-  players?: Player[];
-  currentUser?: Player | null;
-  onSelectChallengeToResolve: (challenge: Challenge) => void;
-  onDeleteChallenge?: (challengeId: string) => void;
-}
+export const MatchHistory: React.FC = () => {
+  const {
+    challenges,
+    players,
+    currentUser,
+    setSelectedChallengeToResolve,
+    setIsMatchResultModalOpen,
+    handleDeleteChallenge
+  } = useLeague();
 
-export const MatchHistory: React.FC<MatchHistoryProps> = ({
-  challenges,
-  players = [],
-  currentUser,
-  onSelectChallengeToResolve,
-  onDeleteChallenge,
-}) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -73,7 +69,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
 
   return (
     <div className="w-full max-w-5xl glass-panel rounded-2xl p-4 sm:p-6 border border-slate-800 bg-slate-900/60 shadow-xl space-y-6">
-      {/* Cabeçalho e Filtros */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
           <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
@@ -86,7 +81,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-          {/* Busca por Nome */}
           <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
@@ -98,7 +92,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
             />
           </div>
 
-          {/* Filtro de Status */}
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -112,7 +105,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
         </div>
       </div>
 
-      {/* Lista de Desafios */}
       <div className="space-y-3">
         {filteredChallenges.length === 0 ? (
           <div className="text-center py-10 text-slate-400 text-sm">
@@ -124,7 +116,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
               key={challenge.id}
               className="glass-card rounded-xl p-4 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:border-slate-700"
             >
-              {/* Informações Principais */}
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-950 border border-slate-800 text-center min-w-[70px]">
                   <span className="text-[10px] text-slate-500 uppercase font-semibold">Semana</span>
@@ -144,7 +135,6 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                     </span>
                   </div>
 
-                  {/* Resumo do resultado ou data */}
                   {challenge.resultSummary ? (
                     <p className="text-xs text-slate-300 font-medium bg-slate-950/40 px-2 py-1 rounded border border-slate-800/60">
                       {challenge.resultSummary}
@@ -158,9 +148,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                 </div>
               </div>
 
-              {/* Placar / Status e Ação */}
               <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/80">
-                {/* Exibição dos Games se concluído */}
                 {challenge.games && challenge.games.length > 0 && (
                   <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 font-mono text-xs font-bold text-slate-200 whitespace-nowrap shrink-0">
                     {challenge.games.map((g, idx) => (
@@ -197,17 +185,20 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                     </button>
 
                     <button
-                      onClick={() => onSelectChallengeToResolve(challenge)}
+                      onClick={() => {
+                        setSelectedChallengeToResolve(challenge);
+                        setIsMatchResultModalOpen(true);
+                      }}
                       className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shadow transition-all whitespace-nowrap"
                     >
                       Registrar Resultado
                     </button>
 
-                    {onDeleteChallenge && (currentUser?.role === 'admin' || currentUser?.id === challenge.challengerId || currentUser?.id === challenge.challengedId) && (
+                    {(currentUser?.role === 'admin' || currentUser?.id === challenge.challengerId || currentUser?.id === challenge.challengedId) && (
                       <button
                         onClick={() => {
-                          if (window.confirm(`Tem certeza que deseja cancelar e apagar o desafio entre ${challenge.challengerName} e ${challenge.challengedName}?`)) {
-                            onDeleteChallenge(challenge.id);
+                          if (window.confirm('Tem certeza que deseja cancelar e apagar este desafio? Esta ação não pode ser desfeita.')) {
+                            handleDeleteChallenge(challenge.id);
                           }
                         }}
                         className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-colors"
@@ -219,7 +210,10 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
                   </div>
                 ) : (
                   <button
-                    onClick={() => onSelectChallengeToResolve(challenge)}
+                    onClick={() => {
+                      setSelectedChallengeToResolve(challenge);
+                      setIsMatchResultModalOpen(true);
+                    }}
                     className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 text-xs font-semibold transition-colors flex items-center gap-1"
                     title="Editar Resultado do Jogo"
                   >

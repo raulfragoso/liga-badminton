@@ -1,27 +1,24 @@
 import React from 'react';
-import { Player, Challenge } from '../types/league';
+import { Player } from '../types/league';
 import { buildPyramidTiers } from '../utils/leagueRules';
 import { Trophy, Swords, AlertCircle, ShieldAlert, Award, ChevronRight, CheckCircle2, Pencil } from 'lucide-react';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface PyramidViewProps {
-  players: Player[];
-  challenges: Challenge[];
-  currentWeek: number;
-  currentUser?: Player | null;
-  onSelectPlayerToChallenge?: (player: Player) => void;
-  onSelectChallengeToResolve?: (challenge: Challenge) => void;
-  onOpenPlayerDetails?: (player: Player) => void;
-}
+export const PyramidView: React.FC = () => {
+  const {
+    players,
+    challenges,
+    settings,
+    currentUser,
+    setPreselectedChallenged,
+    setIsNewChallengeModalOpen,
+    setSelectedChallengeToResolve,
+    setIsMatchResultModalOpen,
+    setSelectedPlayerToEdit,
+    setIsEditPlayerModalOpen
+  } = useLeague();
 
-export const PyramidView: React.FC<PyramidViewProps> = ({
-  players,
-  challenges,
-  currentWeek,
-  currentUser,
-  onSelectPlayerToChallenge,
-  onSelectChallengeToResolve,
-  onOpenPlayerDetails,
-}) => {
+  const currentWeek = settings.currentWeek;
   const tiers = buildPyramidTiers(players);
 
   // Função auxiliar para verificar status do jogador na semana
@@ -175,7 +172,10 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                       {/* Info do Atleta */}
                       <div 
                         className="flex items-center gap-3 cursor-pointer group-hover:text-orange-400 transition-colors"
-                        onClick={() => onOpenPlayerDetails?.(player)}
+                        onClick={() => {
+                          setSelectedPlayerToEdit(player);
+                          setIsEditPlayerModalOpen(true);
+                        }}
                       >
                         <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-sm shadow-inner group-hover:border-orange-500/50">
                           {player.name.substring(0, 2).toUpperCase()}
@@ -198,7 +198,10 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                       <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center gap-2 text-xs">
                         {pendingMatch ? (
                           <button
-                            onClick={() => onSelectChallengeToResolve?.(pendingMatch)}
+                            onClick={() => {
+                              setSelectedChallengeToResolve(pendingMatch);
+                              setIsMatchResultModalOpen(true);
+                            }}
                             className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-colors font-medium text-left"
                           >
                             <span className="flex items-center gap-1.5">
@@ -210,7 +213,10 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                         ) : (
                           <button
                             disabled={!status.canChallenge}
-                            onClick={() => onSelectPlayerToChallenge?.(player)}
+                            onClick={() => {
+                              setPreselectedChallenged(player);
+                              setIsNewChallengeModalOpen(true);
+                            }}
                             className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
                               status.canChallenge
                                 ? 'bg-orange-600/20 hover:bg-orange-600 text-orange-300 hover:text-white border border-orange-500/40 shadow-sm'
@@ -223,7 +229,10 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                         )}
                         {(currentUser?.role === 'admin' || currentUser?.id === player.id) && (
                           <button
-                            onClick={() => onOpenPlayerDetails?.(player)}
+                            onClick={() => {
+                              setSelectedPlayerToEdit(player);
+                              setIsEditPlayerModalOpen(true);
+                            }}
                             className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 transition-colors"
                             title={currentUser?.id === player.id ? "Editar Meu Perfil" : "Editar Dados do Atleta (Admin)"}
                           >

@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
-import { LeagueSettings } from '../types/league';
 import { RotateCcw, X, Calendar, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface ResetLeagueModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  currentSettings: LeagueSettings;
-  onResetLeague: (
-    newStartDate: string,
-    newEndDate: string,
-    newSeasonName?: string
-  ) => void;
-}
+export const ResetLeagueModal: React.FC = () => {
+  const { isResetLeagueModalOpen: isOpen, setIsResetLeagueModalOpen, settings: currentSettings, handleResetLeague } = useLeague();
+  
+  const onClose = () => setIsResetLeagueModalOpen(false);
 
-export const ResetLeagueModal: React.FC<ResetLeagueModalProps> = ({
-  isOpen,
-  onClose,
-  currentSettings,
-  onResetLeague,
-}) => {
   // Configurar datas padrões: hoje e +3 meses
   const todayStr = new Date().toISOString().split('T')[0];
   
@@ -38,7 +28,7 @@ export const ResetLeagueModal: React.FC<ResetLeagueModalProps> = ({
     if (!startDate || !endDate) return;
     if (!confirmCheckbox) return;
 
-    onResetLeague(startDate, endDate, seasonName);
+    handleResetLeague(startDate, endDate, seasonName || currentSettings.name);
     onClose();
   };
 
@@ -56,12 +46,13 @@ export const ResetLeagueModal: React.FC<ResetLeagueModalProps> = ({
               <p className="text-xs text-slate-400">Zerar todos os jogos e definir novas datas</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Formulário */}
@@ -85,48 +76,33 @@ export const ResetLeagueModal: React.FC<ResetLeagueModalProps> = ({
           </div>
 
           {/* Nome da Liga / Temporada */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Nome da Liga / Temporada
-            </label>
-            <input
-              type="text"
-              required
-              value={seasonName}
-              onChange={(e) => setSeasonName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-            />
-          </div>
+          <Input
+            label="Nome da Liga / Temporada"
+            type="text"
+            required
+            value={seasonName}
+            onChange={(e) => setSeasonName(e.target.value)}
+          />
 
           {/* Data de Início e Término */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-orange-400" />
-                Data de Início
-              </label>
-              <input
-                type="date"
-                required
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-              />
-            </div>
+            <Input
+              label="Data de Início"
+              leftIcon={<Calendar className="w-4 h-4" />}
+              type="date"
+              required
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-orange-400" />
-                Data de Término (3 Meses)
-              </label>
-              <input
-                type="date"
-                required
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-              />
-            </div>
+            <Input
+              label="Data de Término (3 Meses)"
+              leftIcon={<Calendar className="w-4 h-4" />}
+              type="date"
+              required
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
 
           {/* Checkbox de Confirmação */}
@@ -146,25 +122,21 @@ export const ResetLeagueModal: React.FC<ResetLeagueModalProps> = ({
 
           {/* Botões de Ação */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="danger"
               disabled={!confirmCheckbox}
-              className={`px-5 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${
-                confirmCheckbox
-                  ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/20'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-800'
-              }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              Zerar Jogos e Iniciar Temporada
-            </button>
+              Zerar Liga e Iniciar Nova Temporada
+            </Button>
           </div>
         </form>
       </div>

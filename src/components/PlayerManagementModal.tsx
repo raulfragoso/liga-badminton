@@ -2,20 +2,14 @@ import React, { useState } from 'react';
 import { Player } from '../types/league';
 import { getDefaultPasswordFromPhone, formatPhoneMask, sanitizePhone } from '../utils/auth';
 import { UserPlus, X, Phone, User, CheckCircle2, Lock, Key } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { useLeague } from '../contexts/LeagueContext';
 
-interface PlayerManagementModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  players: Player[];
-  onAddPlayer: (newPlayer: Player) => void;
-}
+export const PlayerManagementModal: React.FC = () => {
+  const { isPlayerModalOpen: isOpen, setIsPlayerModalOpen, players, handleAddPlayer } = useLeague();
+  const onClose = () => setIsPlayerModalOpen(false);
 
-export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
-  isOpen,
-  onClose,
-  players,
-  onAddPlayer,
-}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [customPassword, setCustomPassword] = useState('');
@@ -48,7 +42,7 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
       createdAt: new Date().toISOString().split('T')[0]
     };
 
-    onAddPlayer(newPlayer);
+    handleAddPlayer(newPlayer);
     setName('');
     setPhone('');
     setCustomPassword('');
@@ -72,60 +66,47 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
               <p className="text-xs text-slate-400">Entrada no Nível 1 (Nível Base de Entrada)</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-orange-400" />
-              Nome Completo do Atleta
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Ex: Carlos Eduardo"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500"
-            />
-          </div>
+          <Input
+            label="Nome Completo do Atleta"
+            leftIcon={<User className="w-4 h-4" />}
+            type="text"
+            required
+            placeholder="Ex: Carlos Eduardo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-orange-400" />
-              Telefone / WhatsApp (Login do Atleta)
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={15}
-              placeholder="(11) 99999-9999"
-              value={phone}
-              onChange={(e) => setPhone(formatPhoneMask(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-medium"
-            />
-          </div>
+          <Input
+            label="Telefone / WhatsApp (Login do Atleta)"
+            leftIcon={<Phone className="w-4 h-4" />}
+            type="text"
+            required
+            maxLength={15}
+            placeholder="(11) 99999-9999"
+            value={phone}
+            onChange={(e) => setPhone(formatPhoneMask(e.target.value))}
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-orange-400" />
-              Senha de Acesso (Padrão: 4 últimos dígitos do telefone)
-            </label>
-            <input
-              type="text"
-              placeholder="Deixe em branco para usar os 4 últimos dígitos do fone"
-              value={customPassword}
-              onChange={(e) => setCustomPassword(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-orange-500 font-mono"
-            />
-          </div>
+          <Input
+            label="Senha de Acesso (Padrão: 4 últimos dígitos do telefone)"
+            leftIcon={<Lock className="w-4 h-4" />}
+            type="text"
+            placeholder="Deixe em branco para usar os 4 últimos dígitos do fone"
+            value={customPassword}
+            onChange={(e) => setCustomPassword(e.target.value)}
+            className="font-mono"
+          />
 
           {/* Card informando a senha gerada */}
           <div className="p-3 bg-orange-500/10 rounded-xl border border-orange-500/30 text-xs text-orange-300 flex items-center gap-2">
@@ -138,20 +119,17 @@ export const PlayerManagementModal: React.FC<PlayerManagementModalProps> = ({
 
           {/* Botões */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
             >
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/20 transition-all flex items-center gap-2"
-            >
+            </Button>
+            <Button type="submit">
               <CheckCircle2 className="w-4 h-4" />
               Adicionar Atleta
-            </button>
+            </Button>
           </div>
         </form>
       </div>
