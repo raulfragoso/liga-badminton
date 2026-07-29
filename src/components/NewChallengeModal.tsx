@@ -10,7 +10,9 @@ interface NewChallengeModalProps {
   players: Player[];
   challenges: Challenge[];
   currentWeek: number;
+  currentUser?: Player | null;
   preselectedChallenger?: Player | null;
+  preselectedChallenged?: Player | null;
   onSaveChallenge: (newChallenge: Challenge) => void;
 }
 
@@ -45,7 +47,9 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
   players,
   challenges,
   currentWeek,
+  currentUser,
   preselectedChallenger,
+  preselectedChallenged,
   onSaveChallenge,
 }) => {
   const [challengerId, setChallengerId] = useState<string>('');
@@ -64,10 +68,25 @@ export const NewChallengeModal: React.FC<NewChallengeModalProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (preselectedChallenger) {
-      setChallengerId(preselectedChallenger.id);
+    if (isOpen) {
+      const activeChallenger = preselectedChallenger || currentUser;
+      if (activeChallenger) {
+        setChallengerId(activeChallenger.id);
+      } else if (players.length > 0 && !challengerId) {
+        setChallengerId(players[0].id);
+      }
+
+      if (preselectedChallenged) {
+        setChallengedId(preselectedChallenged.id);
+      } else if (players.length > 1) {
+        const defaultChallengerId = activeChallenger?.id || players[0].id;
+        const other = players.find(p => p.id !== defaultChallengerId);
+        if (other && !challengedId) {
+          setChallengedId(other.id);
+        }
+      }
     }
-  }, [preselectedChallenger]);
+  }, [isOpen, preselectedChallenger, preselectedChallenged, currentUser]);
 
   if (!isOpen) return null;
 

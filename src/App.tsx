@@ -101,6 +101,7 @@ export const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const [preselectedChallenger, setPreselectedChallenger] = useState<Player | null>(null);
+  const [preselectedChallenged, setPreselectedChallenged] = useState<Player | null>(null);
   const [selectedChallengeToResolve, setSelectedChallengeToResolve] = useState<Challenge | null>(null);
   const [selectedPlayerToEdit, setSelectedPlayerToEdit] = useState<Player | null>(null);
 
@@ -535,7 +536,8 @@ export const App: React.FC = () => {
             {currentUser && (
               <button
                 onClick={() => {
-                  setPreselectedChallenger(currentUser.role === 'athlete' ? currentUser : null);
+                  setPreselectedChallenger(currentUser || null);
+                  setPreselectedChallenged(null);
                   setIsNewChallengeModalOpen(true);
                 }}
                 className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5"
@@ -680,7 +682,8 @@ export const App: React.FC = () => {
                   currentWeek={settings.currentWeek}
                   currentUser={currentUser}
                   onSelectPlayerToChallenge={(player) => {
-                    setPreselectedChallenger(player);
+                    setPreselectedChallenger(currentUser || null);
+                    setPreselectedChallenged(player);
                     setIsNewChallengeModalOpen(true);
                   }}
                   onSelectChallengeToResolve={(challenge) => {
@@ -700,7 +703,8 @@ export const App: React.FC = () => {
                   challenges={challenges}
                   currentUser={currentUser}
                   onSelectPlayerToChallenge={(player) => {
-                    setPreselectedChallenger(player);
+                    setPreselectedChallenger(currentUser || null);
+                    setPreselectedChallenged(player);
                     setIsNewChallengeModalOpen(true);
                   }}
                   onOpenPlayerDetails={(player) => {
@@ -821,11 +825,14 @@ export const App: React.FC = () => {
         onClose={() => {
           setIsNewChallengeModalOpen(false);
           setPreselectedChallenger(null);
+          setPreselectedChallenged(null);
         }}
         players={players}
         challenges={challenges}
         currentWeek={settings.currentWeek}
+        currentUser={currentUser}
         preselectedChallenger={preselectedChallenger}
+        preselectedChallenged={preselectedChallenged}
         onSaveChallenge={handleSaveChallenge}
       />
 
