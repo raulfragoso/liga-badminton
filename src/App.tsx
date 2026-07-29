@@ -421,182 +421,182 @@ export const App: React.FC = () => {
       )}
 
       {/* HEADER / NAVBAR PRINCIPAL */}
-      <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Logo Oficial Maylson Campos e Título */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center border-2 border-orange-500/60 shadow-xl shadow-orange-500/25 overflow-hidden p-1 shrink-0">
-              <img 
-                src="/logo-maylson.png" 
-                alt="Complexo Esportivo Maylson Campos Logo" 
-                className="w-full h-full object-contain rounded-xl"
-              />
+      <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
+          
+          {/* LINHA 1: BRANDING + PERFIL DO USUÁRIO + BOTÕES DE AÇÃO */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Esquerda: Logo Oficial e Título */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center border border-orange-500/60 shadow-lg shadow-orange-500/20 overflow-hidden p-0.5 shrink-0">
+                <img 
+                  src="/logo-maylson.png" 
+                  alt="Complexo Esportivo Maylson Campos Logo" 
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              </div>
+              <div>
+                <h1 className="text-base font-black tracking-tight text-white flex items-center gap-2">
+                  Liga de Badminton
+                </h1>
+                <p className="text-[11px] text-slate-400 hidden sm:block">Complexo Esportivo Maylson Campos</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
-                Liga de Badminton
-              </h1>
-              <p className="text-xs text-slate-400">Sistema Oficial de Desafios e Ranking em Pirâmide</p>
+
+            {/* Direita: Perfil + Ações Rápidas Unificadas */}
+            <div className="flex items-center gap-2.5 ml-auto">
+              {currentUser ? (
+                <>
+                  {/* Widget do Perfil do Atleta */}
+                  <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <div className="w-7 h-7 rounded-lg bg-orange-600/20 border border-orange-500/40 flex items-center justify-center font-bold text-orange-400 text-xs">
+                      {currentUser.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-slate-100 flex items-center gap-1.5 whitespace-nowrap">
+                        {currentUser.name}
+                        <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border ${
+                          currentUser.role === 'admin' 
+                            ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' 
+                            : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                        }`}>
+                          {currentUser.role === 'admin' ? 'Admin' : 'Atleta'}
+                        </span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="ml-1 p-1 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-colors"
+                      title="Sair da Conta"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* CTA Principal: Novo Desafio */}
+                  <button
+                    onClick={() => {
+                      setPreselectedChallenger(currentUser || null);
+                      setPreselectedChallenged(null);
+                      setIsNewChallengeModalOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Novo Desafio</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Entrar
+                </button>
+              )}
+
+              {/* Toolbar Auxiliar: Regulamento & Ferramentas do Admin */}
+              <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                <button
+                  onClick={() => setIsRulesModalOpen(true)}
+                  className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors"
+                  title="Ver Regulamento Oficial"
+                >
+                  <BookOpen className="w-4 h-4 text-slate-400 hover:text-white" />
+                </button>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => setIsResetLeagueModalOpen(true)}
+                      className="p-1.5 rounded-lg hover:bg-rose-500/20 text-rose-400 transition-colors"
+                      title="Zerar Jogos e Iniciar Nova Temporada (Admin)"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={handleExportData}
+                      className="p-1.5 rounded-lg hover:bg-slate-800 text-emerald-400 transition-colors"
+                      title="Exportar Backup dos Atletas (Arquivo JSON)"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+
+                    <label
+                      className="p-1.5 rounded-lg hover:bg-slate-800 text-cyan-400 transition-colors cursor-pointer"
+                      title="Importar Backup dos Atletas (Arquivo JSON)"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleImportData}
+                        className="hidden"
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Navegação por Abas (Exibida Apenas se Autenticado) */}
+          {/* LINHA 2: NAVEGAÇÃO SEGMENTADA POR ABAS */}
           {currentUser && (
-            <nav className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-              <button
-                onClick={() => setActiveTab('levels')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  activeTab === 'levels'
-                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                Lista por Níveis
-              </button>
-              <button
-                onClick={() => setActiveTab('pyramid')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  activeTab === 'pyramid'
-                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Trophy className="w-4 h-4" />
-                Pirâmide
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  activeTab === 'history'
-                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Swords className="w-4 h-4" />
-                Desafios ({challenges.filter(c => c.status === 'pending').length} Pendentes)
-              </button>
-              <button
-                onClick={() => setActiveTab('players')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  activeTab === 'players'
-                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Atletas ({players.length})
-              </button>
-            </nav>
+            <div className="flex items-center justify-start overflow-x-auto pt-1 border-t border-slate-900/90 no-scrollbar">
+              <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80">
+                <button
+                  onClick={() => setActiveTab('levels')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeTab === 'levels'
+                      ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  Lista por Níveis
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('pyramid')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeTab === 'pyramid'
+                      ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  Pirâmide
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeTab === 'history'
+                      ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Swords className="w-3.5 h-3.5" />
+                  Desafios ({challenges.filter(c => c.status === 'pending').length})
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('players')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeTab === 'players'
+                      ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  Atletas ({players.length})
+                </button>
+              </nav>
+            </div>
           )}
 
-          {/* Ações Rápidas & Perfil do Usuário */}
-          <div className="flex items-center gap-3">
-
-            {/* Widget de Perfil do Usuário Logado */}
-            {currentUser ? (
-              <div className="flex items-center gap-2.5 bg-slate-900/90 p-1.5 pr-3 rounded-2xl border border-slate-800">
-                <div className="w-8 h-8 rounded-xl bg-orange-600/20 border border-orange-500/40 flex items-center justify-center font-bold text-orange-400 text-xs">
-                  {currentUser.name.substring(0, 2).toUpperCase()}
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-100 flex items-center gap-1 leading-tight">
-                    {currentUser.name}
-                    {currentUser.role === 'admin' ? (
-                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                        Admin
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                        Atleta
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">{currentUser.phone ? formatPhoneDisplay(currentUser.phone) : 'Sem fone'}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="ml-1 p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-colors"
-                  title="Sair da Conta"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-orange-400 border border-orange-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shadow"
-              >
-                <LogIn className="w-4 h-4" />
-                Entrar / Login
-              </button>
-            )}
-
-            {/* Novo Desafio (Somente se autenticado) */}
-            {currentUser && (
-              <button
-                onClick={() => {
-                  setPreselectedChallenger(currentUser || null);
-                  setPreselectedChallenged(null);
-                  setIsNewChallengeModalOpen(true);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                Novo Desafio
-              </button>
-            )}
-
-            {/* Regulamento */}
-            <button
-              onClick={() => setIsRulesModalOpen(true)}
-              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition-colors flex items-center gap-1"
-              title="Ver Regulamento Oficial"
-            >
-              <BookOpen className="w-4 h-4" />
-            </button>
-
-            {/* Zerar Liga (Visível Apenas para Administrador) */}
-            {isAdmin && (
-              <button
-                onClick={() => setIsResetLeagueModalOpen(true)}
-                className="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition-all flex items-center gap-1.5"
-                title="Zerar Jogos e Iniciar Nova Temporada (Administrador)"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Zerar Liga</span>
-              </button>
-            )}
-
-            {/* Exportar Backup JSON */}
-            {isAdmin && (
-              <button
-                onClick={handleExportData}
-                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border border-slate-800 text-xs transition-colors flex items-center gap-1"
-                title="Exportar Backup dos Atletas (Baixar Arquivo JSON)"
-              >
-                <Download className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            {/* Importar Backup JSON */}
-            {isAdmin && (
-              <label
-                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 hover:text-cyan-300 border border-slate-800 text-xs transition-colors cursor-pointer flex items-center gap-1"
-                title="Importar Arquivo Backup JSON (Carregar Atletas)"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportData}
-                  className="hidden"
-                />
-              </label>
-            )}
-
-            {/* Botões de Ação de Administrador */}
-          </div>
         </div>
       </header>
 
