@@ -91,7 +91,7 @@ export const App: React.FC = () => {
     return null; // Nenhum usuário logado automaticamente ao abrir
   });
 
-  const [activeTab, setActiveTab] = useState<'pyramid' | 'levels' | 'history' | 'players'>('pyramid');
+  const [activeTab, setActiveTab] = useState<'pyramid' | 'levels' | 'history' | 'players'>('levels');
 
   // Modais
   const [isNewChallengeModalOpen, setIsNewChallengeModalOpen] = useState(false);
@@ -445,17 +445,6 @@ export const App: React.FC = () => {
           {currentUser && (
             <nav className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
               <button
-                onClick={() => setActiveTab('pyramid')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  activeTab === 'pyramid'
-                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Trophy className="w-4 h-4" />
-                Pirâmide
-              </button>
-              <button
                 onClick={() => setActiveTab('levels')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                   activeTab === 'levels'
@@ -465,6 +454,17 @@ export const App: React.FC = () => {
               >
                 <Layers className="w-4 h-4" />
                 Lista por Níveis
+              </button>
+              <button
+                onClick={() => setActiveTab('pyramid')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === 'pyramid'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Trophy className="w-4 h-4" />
+                Pirâmide
               </button>
               <button
                 onClick={() => setActiveTab('history')}
