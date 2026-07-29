@@ -206,17 +206,34 @@ export const MatchHistory: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setSelectedChallengeToResolve(challenge);
-                      setIsMatchResultModalOpen(true);
-                    }}
-                    className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 text-xs font-semibold transition-colors flex items-center gap-1"
-                    title="Editar Resultado do Jogo"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span>Editar</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedChallengeToResolve(challenge);
+                        setIsMatchResultModalOpen(true);
+                      }}
+                      className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-orange-400 border border-slate-800 text-xs font-semibold transition-colors flex items-center gap-1"
+                      title="Editar Resultado do Jogo"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Editar</span>
+                    </button>
+
+                    {currentUser?.role === 'admin' && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Atenção: Tem certeza que deseja apagar permanentemente este desafio do histórico? Esta ação recalculará automaticamente toda a pirâmide.')) {
+                            handleDeleteChallenge(challenge.id);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-colors flex items-center gap-1"
+                        title="Apagar Histórico de Desafio (Somente Admin)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden md:inline">Apagar</span>
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
