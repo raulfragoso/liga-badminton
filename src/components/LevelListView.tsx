@@ -154,7 +154,7 @@ export const LevelListView: React.FC<LevelListViewProps> = ({
                       )}
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Capacidade Máxima: {levelNumber} atleta{levelNumber > 1 ? 's' : ''} • {levelPlayers.length} cadastrado{levelPlayers.length !== 1 ? 's' : ''}
+                      {levelPlayers.length} atleta{levelPlayers.length !== 1 ? 's' : ''} neste nível
                     </p>
                   </div>
                 </div>
