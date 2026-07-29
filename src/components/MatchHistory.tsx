@@ -148,7 +148,7 @@ export const MatchHistory: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/80">
+              <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/80">
                 {challenge.games && challenge.games.length > 0 && (
                   <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 font-mono text-xs font-bold text-slate-200 whitespace-nowrap shrink-0">
                     {challenge.games.map((g, idx) => (

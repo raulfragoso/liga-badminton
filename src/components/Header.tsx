@@ -47,7 +47,8 @@ export function Header() {
           </div>
 
           {/* Direita: Perfil + Ações Rápidas Unificadas */}
-          <div className="flex items-center gap-2.5 ml-auto">
+          {/* Direita: Perfil + Ações Rápidas Unificadas */}
+          <div className="flex flex-wrap items-center justify-end gap-2.5 ml-auto">
             {currentUser ? (
               <>
                 {/* Widget do Perfil do Atleta */}
