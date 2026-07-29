@@ -657,7 +657,7 @@ export const App: React.FC = () => {
             </div>
           ) : (
             /* DADOS DA LIGA (EXIBIDOS EXCLUSIVAMENTE APÓS AUTENTICAÇÃO) */
-            <>
+            <div className="w-full space-y-6">
               {/* Banner de Status do Período de 3 Meses / Premiação */}
               <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
@@ -833,7 +833,7 @@ export const App: React.FC = () => {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </main>
 
