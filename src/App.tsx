@@ -40,8 +40,8 @@ export const App: React.FC = () => {
       {/* O padding inferior extra garante que a BottomNav não esconda conteúdo no mobile */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
         
-        {/* Coluna Esquerda: Estatísticas Principais (Desktop) */}
-        <div className="w-full lg:w-72 shrink-0 space-y-4">
+        {/* Coluna Esquerda: Estatísticas Principais (Desktop) / Fim (Mobile) */}
+        <div className="w-full lg:w-72 shrink-0 space-y-4 order-2 lg:order-1">
           <div className="glass-panel rounded-2xl p-5 border border-slate-800 shadow-xl shadow-black/20">
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="w-4 h-4 text-orange-500" />
@@ -97,7 +97,7 @@ export const App: React.FC = () => {
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 order-1 lg:order-2">
             <div className="animate-fadeIn">
               <Routes>
                 <Route path="/" element={<PyramidView />} />
