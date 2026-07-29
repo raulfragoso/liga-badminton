@@ -6,23 +6,31 @@ import { Button } from './ui/Button';
 import { NavLink } from 'react-router-dom';
 
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Header() {
   const {
-    currentUser,
-    isAdmin,
     challenges,
     players,
-    handleLogout,
+    handleExportData,
+    handleImportData
+  } = useLeague();
+
+  const {
     setPreselectedChallenger,
     setPreselectedChallenged,
     setIsNewChallengeModalOpen,
     setIsLoginModalOpen,
     setIsRulesModalOpen,
     setIsResetLeagueModalOpen,
-    handleExportData,
-    handleImportData
-  } = useLeague();
+  } = useUI();
+
+  const {
+    currentUser,
+    isAdmin,
+    handleLogout
+  } = useAuth();
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">

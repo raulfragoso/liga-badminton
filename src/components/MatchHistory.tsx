@@ -3,16 +3,13 @@ import { Challenge } from '../types/league';
 import { sendWhatsappNotification } from '../utils/notifications';
 import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare, Trash2 } from 'lucide-react';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const MatchHistory: React.FC = () => {
-  const {
-    challenges,
-    players,
-    currentUser,
-    setSelectedChallengeToResolve,
-    setIsMatchResultModalOpen,
-    handleDeleteChallenge
-  } = useLeague();
+  const { challenges, players, handleDeleteChallenge } = useLeague();
+  const { setSelectedChallengeToResolve, setIsMatchResultModalOpen } = useUI();
+  const { currentUser } = useAuth();
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');

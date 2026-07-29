@@ -1,12 +1,11 @@
 import { Layers, Trophy, Swords, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useLeague } from '../contexts/LeagueContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export function BottomNav() {
-  const {
-    currentUser,
-    challenges
-  } = useLeague();
+  const { challenges } = useLeague();
+  const { currentUser } = useAuth();
 
   if (!currentUser) return null;
 

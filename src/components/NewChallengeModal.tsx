@@ -33,18 +33,18 @@ function formatDateTimePtBR(dateTimeStr: string): string {
   return `${capitalizedWeekday}, ${dayMonthYear} às ${hoursMinutes}`;
 }
 
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
+
 export const NewChallengeModal: React.FC = () => {
-  const {
-    isNewChallengeModalOpen: isOpen,
-    setIsNewChallengeModalOpen,
-    players,
-    challenges,
-    settings,
-    currentUser,
-    preselectedChallenger,
-    preselectedChallenged,
-    handleSaveChallenge: onSaveChallenge
-  } = useLeague();
+  const { players, challenges, settings, handleSaveChallenge: onSaveChallenge } = useLeague();
+  const { 
+    isNewChallengeModalOpen: isOpen, 
+    setIsNewChallengeModalOpen, 
+    preselectedChallenger, 
+    preselectedChallenged 
+  } = useUI();
+  const { currentUser } = useAuth();
   
   const currentWeek = settings.currentWeek;
   const onClose = () => setIsNewChallengeModalOpen(false);

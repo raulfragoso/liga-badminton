@@ -2,16 +2,13 @@ import { Plus, Pencil } from 'lucide-react';
 import { formatPhoneDisplay } from '../utils/auth';
 import { Button } from './ui/Button';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const PlayersView: React.FC = () => {
-  const {
-    players,
-    currentUser,
-    isAdmin,
-    setIsPlayerModalOpen,
-    setSelectedPlayerToEdit,
-    setIsEditPlayerModalOpen
-  } = useLeague();
+  const { players } = useLeague();
+  const { setIsPlayerModalOpen, setSelectedPlayerToEdit, setIsEditPlayerModalOpen } = useUI();
+  const { currentUser, isAdmin } = useAuth();
 
   return (
     <div className="w-full max-w-5xl glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">

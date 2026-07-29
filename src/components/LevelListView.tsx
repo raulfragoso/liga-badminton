@@ -11,16 +11,18 @@ import {
 } from 'lucide-react';
 import { formatPhoneDisplay } from '../utils/auth';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const LevelListView: React.FC = () => {
+  const { players } = useLeague();
   const {
-    players,
-    currentUser,
     setPreselectedChallenged,
     setIsNewChallengeModalOpen,
     setSelectedPlayerToEdit,
     setIsEditPlayerModalOpen
-  } = useLeague();
+  } = useUI();
+  const { currentUser } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<number | 'all'>('all');

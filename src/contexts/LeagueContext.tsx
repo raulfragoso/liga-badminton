@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Player, Challenge, LeagueSettings } from '../types/league';
 import { INITIAL_SETTINGS } from '../data/initialData';
 import { recalculatePlayerStats } from '../utils/leagueRules';
+import { useUI } from './UIContext';
 import {
   fetchPlayersFromSupabase,
   fetchChallengesFromSupabase,
@@ -16,12 +17,6 @@ import {
   saveSettingsToSupabase
 } from '../utils/supabaseClient';
 
-interface ToastMessage {
-  title: string;
-  desc: string;
-  type: 'success' | 'warning';
-}
-
 interface LeagueContextProps {
   players: Player[];
   setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
@@ -29,42 +24,6 @@ interface LeagueContextProps {
   setChallenges: React.Dispatch<React.SetStateAction<Challenge[]>>;
   settings: LeagueSettings;
   setSettings: React.Dispatch<React.SetStateAction<LeagueSettings>>;
-  
-  currentUser: Player | null;
-  setCurrentUser: React.Dispatch<React.SetStateAction<Player | null>>;
-  isAdmin: boolean;
-  handleLoginSuccess: (user: Player) => void;
-  handleLogout: () => void;
-
-  // Modal states
-  isNewChallengeModalOpen: boolean;
-  setIsNewChallengeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isMatchResultModalOpen: boolean;
-  setIsMatchResultModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isPlayerModalOpen: boolean;
-  setIsPlayerModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isRulesModalOpen: boolean;
-  setIsRulesModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isResetLeagueModalOpen: boolean;
-  setIsResetLeagueModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isEditPlayerModalOpen: boolean;
-  setIsEditPlayerModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isLoginModalOpen: boolean;
-  setIsLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Preselected Data
-  preselectedChallenger: Player | null;
-  setPreselectedChallenger: React.Dispatch<React.SetStateAction<Player | null>>;
-  preselectedChallenged: Player | null;
-  setPreselectedChallenged: React.Dispatch<React.SetStateAction<Player | null>>;
-  selectedChallengeToResolve: Challenge | null;
-  setSelectedChallengeToResolve: React.Dispatch<React.SetStateAction<Challenge | null>>;
-  selectedPlayerToEdit: Player | null;
-  setSelectedPlayerToEdit: React.Dispatch<React.SetStateAction<Player | null>>;
-
-  toastMessage: ToastMessage | null;
-  showToast: (title: string, desc: string, type?: 'success' | 'warning') => void;
-  clearToast: () => void;
 
   // Actions
   handleExportData: () => void;
@@ -81,6 +40,8 @@ interface LeagueContextProps {
 const LeagueContext = createContext<LeagueContextProps | undefined>(undefined);
 
 export const LeagueProvider = ({ children }: { children: ReactNode }) => {
+  const { showToast } = useUI();
+
   const [players, setPlayers] = useState<Player[]>(() => {
     const saved = localStorage.getItem('badminton_players');
     return saved ? JSON.parse(saved) : [];
@@ -95,33 +56,6 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('badminton_settings');
     return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
   });
-
-  const [currentUser, setCurrentUser] = useState<Player | null>(() => {
-    const saved = localStorage.getItem('badminton_current_user');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-
-  const [isNewChallengeModalOpen, setIsNewChallengeModalOpen] = useState(false);
-  const [isMatchResultModalOpen, setIsMatchResultModalOpen] = useState(false);
-  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
-  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
-  const [isResetLeagueModalOpen, setIsResetLeagueModalOpen] = useState(false);
-  const [isEditPlayerModalOpen, setIsEditPlayerModalOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  const [preselectedChallenger, setPreselectedChallenger] = useState<Player | null>(null);
-  const [preselectedChallenged, setPreselectedChallenged] = useState<Player | null>(null);
-  const [selectedChallengeToResolve, setSelectedChallengeToResolve] = useState<Challenge | null>(null);
-  const [selectedPlayerToEdit, setSelectedPlayerToEdit] = useState<Player | null>(null);
-
-  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
-
-  const showToast = (title: string, desc: string, type: 'success' | 'warning' = 'success') => {
-    setToastMessage({ title, desc, type });
-    setTimeout(() => setToastMessage(null), 5000);
-  };
-  const clearToast = () => setToastMessage(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -156,24 +90,6 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => { localStorage.setItem('badminton_players', JSON.stringify(players)); }, [players]);
   useEffect(() => { localStorage.setItem('badminton_challenges', JSON.stringify(challenges)); }, [challenges]);
   useEffect(() => { localStorage.setItem('badminton_settings', JSON.stringify(settings)); }, [settings]);
-  useEffect(() => {
-    if (currentUser) localStorage.setItem('badminton_current_user', JSON.stringify(currentUser));
-    else localStorage.removeItem('badminton_current_user');
-  }, [currentUser]);
-
-  const handleLoginSuccess = (user: Player) => {
-    setCurrentUser(user);
-    showToast(
-      `Bem-vindo(a), ${user.name}!`,
-      user.role === 'admin' ? 'Conectado como Administrador.' : 'Conectado como Atleta.',
-      'success'
-    );
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    showToast('Sessão Encerrada', 'Você saiu da sua conta.', 'warning');
-  };
 
   const handleExportData = () => {
     const backupData = { players, challenges, settings, exportedAt: new Date().toISOString() };
@@ -229,91 +145,104 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
       const nextChallenges = prev.map(c => c.id === completedChallenge.id ? completedChallenge : c);
       const recalculated = recalculatePlayerStats(updatedPlayers, nextChallenges);
       setPlayers(recalculated);
+      
       if (isSupabaseConfigured) {
         saveSingleChallengeToSupabase(completedChallenge);
         saveAllPlayersToSupabase(recalculated);
       }
       return nextChallenges;
     });
-    showToast('Pirâmide Atualizada!', summaryMessage, 'success');
+    
+    showToast('Resultado Salvo!', summaryMessage);
   };
 
   const handleAddPlayer = (newPlayer: Player) => {
-    setPlayers(prev => [...prev, newPlayer]);
-    if (isSupabaseConfigured) saveSinglePlayerToSupabase(newPlayer);
-    showToast('Atleta Cadastrado', `${newPlayer.name} ingressou no Rank #${newPlayer.rank}.`);
+    setPlayers(prev => {
+      const updated = [...prev, newPlayer];
+      if (isSupabaseConfigured) saveSinglePlayerToSupabase(newPlayer);
+      return updated;
+    });
+    showToast('Atleta Cadastrado!', `${newPlayer.name} entrou na liga.`);
   };
 
   const handleSavePlayer = (updatedPlayer: Player) => {
-    setPlayers(prev => prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p));
-    if (isSupabaseConfigured) saveSinglePlayerToSupabase(updatedPlayer);
-    showToast('Atualizado!', `Dados de ${updatedPlayer.name} atualizados com sucesso.`);
+    setPlayers(prev => {
+      const nextPlayers = prev.map(p => p.id === updatedPlayer.id ? updatedPlayer : p);
+      const recalculated = recalculatePlayerStats(nextPlayers, challenges);
+      if (isSupabaseConfigured) {
+        saveAllPlayersToSupabase(recalculated);
+      }
+      return recalculated;
+    });
+    showToast('Atleta Atualizado!', 'As informações foram salvas com sucesso.');
   };
 
   const handleDeletePlayer = (playerId: string) => {
-    setPlayers(prev => prev.filter(p => p.id !== playerId));
-    if (isSupabaseConfigured) deletePlayerFromSupabase(playerId);
-    showToast('Atleta Excluído', 'O atleta foi removido do ranking.', 'warning');
+    setPlayers(prev => {
+      const updated = prev.filter(p => p.id !== playerId);
+      if (isSupabaseConfigured) deletePlayerFromSupabase(playerId);
+      return updated;
+    });
+    showToast('Atleta Removido', 'O atleta foi excluído do sistema.');
   };
 
   const handleDeleteChallenge = (challengeId: string) => {
-    setChallenges(prev => prev.filter(c => c.id !== challengeId));
-    if (isSupabaseConfigured) deleteChallengeFromSupabase(challengeId);
-    showToast('Desafio Excluído', 'O desafio foi removido do sistema.', 'warning');
+    setChallenges(prev => {
+      const nextChallenges = prev.filter(c => c.id !== challengeId);
+      const recalculated = recalculatePlayerStats(players, nextChallenges);
+      setPlayers(recalculated);
+      if (isSupabaseConfigured) {
+        deleteChallengeFromSupabase(challengeId);
+        saveAllPlayersToSupabase(recalculated);
+      }
+      return nextChallenges;
+    });
+    showToast('Desafio Cancelado', 'O desafio foi apagado do sistema.', 'warning');
   };
 
-  const handleResetLeague = (start: string, end: string, newSeasonName?: string) => {
+  const handleResetLeague = (start: string, end: string, newSeasonName: string = 'Nova Temporada') => {
+    const nextSettings: LeagueSettings = {
+      ...settings,
+      name: newSeasonName,
+      seasonStartDate: start,
+      seasonEndDate: end,
+      currentWeek: 1
+    };
+    
+    setSettings(nextSettings);
+    setChallenges([]);
+    
     const resetPlayers = players.map(p => ({
       ...p,
-      level: 1,
       wins: 0,
       losses: 0,
-      status: 'active' as const,
-      cooldownUntil: undefined,
+      points: 0,
       lastChallengeWeek: 0,
       history: []
     }));
     
     setPlayers(resetPlayers);
-    setChallenges([]);
-    const newSettings = {
-      name: newSeasonName || settings.name,
-      seasonStartDate: start,
-      seasonEndDate: end,
-      currentWeek: 1,
-      maxRefusalsWithoutPenalty: settings.maxRefusalsWithoutPenalty
-    };
-    setSettings(newSettings);
-    
-    if (isSupabaseConfigured) {
-      saveAllPlayersToSupabase(resetPlayers);
-      saveSettingsToSupabase(newSettings);
-    }
-    showToast('Nova Temporada!', 'A liga foi zerada e uma nova temporada começou.', 'success');
-  };
 
-  const isAdmin = currentUser?.role === 'admin';
+    if (isSupabaseConfigured) {
+      saveSettingsToSupabase(nextSettings);
+      saveAllPlayersToSupabase(resetPlayers);
+      challenges.forEach(c => deleteChallengeFromSupabase(c.id));
+    }
+    
+    showToast('Liga Reiniciada!', 'Todos os jogos e estatísticas foram zerados.');
+  };
 
   return (
     <LeagueContext.Provider
       value={{
-        players, setPlayers, challenges, setChallenges, settings, setSettings,
-        currentUser, setCurrentUser, isAdmin, handleLoginSuccess, handleLogout,
-        isNewChallengeModalOpen, setIsNewChallengeModalOpen,
-        isMatchResultModalOpen, setIsMatchResultModalOpen,
-        isPlayerModalOpen, setIsPlayerModalOpen,
-        isRulesModalOpen, setIsRulesModalOpen,
-        isResetLeagueModalOpen, setIsResetLeagueModalOpen,
-        isEditPlayerModalOpen, setIsEditPlayerModalOpen,
-        isLoginModalOpen, setIsLoginModalOpen,
-        preselectedChallenger, setPreselectedChallenger,
-        preselectedChallenged, setPreselectedChallenged,
-        selectedChallengeToResolve, setSelectedChallengeToResolve,
-        selectedPlayerToEdit, setSelectedPlayerToEdit,
-        toastMessage, showToast, clearToast,
-        handleExportData, handleImportData, handleSaveChallenge,
-        handleCompleteMatch, handleAddPlayer, handleSavePlayer,
-        handleDeletePlayer, handleDeleteChallenge, handleResetLeague
+        players, setPlayers,
+        challenges, setChallenges,
+        settings, setSettings,
+        handleExportData, handleImportData,
+        handleSaveChallenge, handleCompleteMatch,
+        handleAddPlayer, handleSavePlayer,
+        handleDeletePlayer, handleDeleteChallenge,
+        handleResetLeague
       }}
     >
       {children}

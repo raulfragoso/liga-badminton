@@ -18,11 +18,11 @@ import { PlayersView } from './components/PlayersView';
 import { getLeagueLeader } from './utils/leagueRules';
 import { Calendar, Award } from 'lucide-react';
 import { useLeague } from './contexts/LeagueContext';
+import { useUI } from './contexts/UIContext';
 
 export const App: React.FC = () => {
-  const {
-    players, challenges, settings, toastMessage
-  } = useLeague();
+  const { players, challenges, settings } = useLeague();
+  const { toastMessage } = useUI();
   
   const leagueLeader = getLeagueLeader(players);
   const totalMatches = challenges.filter(c => c.status === 'completed').length;

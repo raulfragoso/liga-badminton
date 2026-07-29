@@ -1,10 +1,10 @@
 import { X, Award, ShieldAlert, Swords, Clock, CheckCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 
-import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
 
 export const RulesModal: React.FC = () => {
-  const { isRulesModalOpen: isOpen, setIsRulesModalOpen } = useLeague();
+  const { isRulesModalOpen: isOpen, setIsRulesModalOpen } = useUI();
   const onClose = () => setIsRulesModalOpen(false);
   
   if (!isOpen) return null;

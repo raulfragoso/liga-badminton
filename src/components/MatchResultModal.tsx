@@ -5,17 +5,17 @@ import confetti from 'canvas-confetti';
 import { Trophy, X, Check, Trash2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const MatchResultModal: React.FC = () => {
-  const {
-    isMatchResultModalOpen: isOpen,
-    setIsMatchResultModalOpen,
-    selectedChallengeToResolve: challenge,
-    players,
-    handleCompleteMatch,
-    handleDeleteChallenge,
-    isAdmin
-  } = useLeague();
+  const { players, handleCompleteMatch, handleDeleteChallenge } = useLeague();
+  const { 
+    isMatchResultModalOpen: isOpen, 
+    setIsMatchResultModalOpen, 
+    selectedChallengeToResolve: challenge 
+  } = useUI();
+  const { isAdmin } = useAuth();
 
   const onClose = () => setIsMatchResultModalOpen(false);
 

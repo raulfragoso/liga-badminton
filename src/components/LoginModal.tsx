@@ -6,15 +6,13 @@ import { Input } from './ui/Input';
 import { fetchPlayersFromSupabase, isSupabaseConfigured } from '../utils/supabaseClient';
 import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const LoginModal: React.FC = () => {
-  const {
-    isLoginModalOpen: isOpen,
-    setIsLoginModalOpen,
-    players,
-    handleLoginSuccess,
-    setPlayers
-  } = useLeague();
+  const { players, setPlayers } = useLeague();
+  const { isLoginModalOpen: isOpen, setIsLoginModalOpen } = useUI();
+  const { handleLoginSuccess } = useAuth();
 
   const onClose = () => setIsLoginModalOpen(false);
   const [phone, setPhone] = useState('');

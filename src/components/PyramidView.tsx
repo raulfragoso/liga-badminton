@@ -3,20 +3,20 @@ import { Player } from '../types/league';
 import { buildPyramidTiers } from '../utils/leagueRules';
 import { Trophy, Swords, AlertCircle, ShieldAlert, Award, ChevronRight, CheckCircle2, Pencil } from 'lucide-react';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const PyramidView: React.FC = () => {
-  const {
-    players,
-    challenges,
-    settings,
-    currentUser,
-    setPreselectedChallenged,
-    setIsNewChallengeModalOpen,
-    setSelectedChallengeToResolve,
-    setIsMatchResultModalOpen,
-    setSelectedPlayerToEdit,
-    setIsEditPlayerModalOpen
-  } = useLeague();
+  const { players, challenges, settings } = useLeague();
+  const { 
+    setPreselectedChallenged, 
+    setIsNewChallengeModalOpen, 
+    setSelectedChallengeToResolve, 
+    setIsMatchResultModalOpen, 
+    setSelectedPlayerToEdit, 
+    setIsEditPlayerModalOpen 
+  } = useUI();
+  const { currentUser } = useAuth();
 
   const currentWeek = settings.currentWeek;
   const tiers = buildPyramidTiers(players);

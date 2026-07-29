@@ -6,16 +6,17 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export const EditPlayerModal: React.FC = () => {
+  const { handleSavePlayer, handleDeletePlayer } = useLeague();
   const { 
     isEditPlayerModalOpen: isOpen, 
     setIsEditPlayerModalOpen, 
-    selectedPlayerToEdit: player, 
-    handleSavePlayer, 
-    handleDeletePlayer, 
-    currentUser 
-  } = useLeague();
+    selectedPlayerToEdit: player 
+  } = useUI();
+  const { currentUser } = useAuth();
   
   const onClose = () => setIsEditPlayerModalOpen(false);
   const isAdmin = currentUser?.role === 'admin';

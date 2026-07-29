@@ -5,9 +5,11 @@ import { UserPlus, X, Phone, User, CheckCircle2, Lock, Key } from 'lucide-react'
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
 
 export const PlayerManagementModal: React.FC = () => {
-  const { isPlayerModalOpen: isOpen, setIsPlayerModalOpen, players, handleAddPlayer } = useLeague();
+  const { players, handleAddPlayer } = useLeague();
+  const { isPlayerModalOpen: isOpen, setIsPlayerModalOpen } = useUI();
   const onClose = () => setIsPlayerModalOpen(false);
 
   const [name, setName] = useState('');

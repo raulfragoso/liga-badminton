@@ -3,9 +3,11 @@ import { RotateCcw, X, Calendar, AlertTriangle, CheckCircle2 } from 'lucide-reac
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { useLeague } from '../contexts/LeagueContext';
+import { useUI } from '../contexts/UIContext';
 
 export const ResetLeagueModal: React.FC = () => {
-  const { isResetLeagueModalOpen: isOpen, setIsResetLeagueModalOpen, settings: currentSettings, handleResetLeague } = useLeague();
+  const { settings: currentSettings, handleResetLeague } = useLeague();
+  const { isResetLeagueModalOpen: isOpen, setIsResetLeagueModalOpen } = useUI();
   
   const onClose = () => setIsResetLeagueModalOpen(false);
 
