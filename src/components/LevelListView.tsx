@@ -175,9 +175,7 @@ export const LevelListView: React.FC<LevelListViewProps> = ({
                 ) : (
                   levelPlayers.map((player) => {
                     const isCurrentUser = currentUser?.id === player.id;
-                    const canChallenge = currentUser && 
-                                        !isCurrentUser && 
-                                        (player.level === currentUser.level || player.level === currentUser.level + 1);
+                    const canChallenge = currentUser && !isCurrentUser;
 
                     const totalMatches = player.wins + player.losses;
                     const winRate = totalMatches > 0 ? Math.round((player.wins / totalMatches) * 100) : 0;
