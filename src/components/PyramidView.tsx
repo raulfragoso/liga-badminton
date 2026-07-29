@@ -153,7 +153,7 @@ export const PyramidView: React.FC<PyramidViewProps> = ({
                   return (
                     <div
                       key={player.id}
-                      className={`relative group glass-card rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 w-64 md:w-72 border ${borderStyle} ${bgStyle} flex flex-col justify-between`}
+                      className={`relative group glass-card rounded-2xl p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1 w-full max-w-[280px] sm:w-64 md:w-72 border ${borderStyle} ${bgStyle} flex flex-col justify-between`}
                     >
                       {/* Topo do Card: Rank e Status */}
                       <div className="flex items-center justify-between gap-2 mb-3">

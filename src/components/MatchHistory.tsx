@@ -72,12 +72,12 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl glass-panel rounded-2xl p-6 border border-slate-800 bg-slate-900/60 shadow-xl space-y-6">
+    <div className="w-full max-w-5xl glass-panel rounded-2xl p-4 sm:p-6 border border-slate-800 bg-slate-900/60 shadow-xl space-y-6">
       {/* Cabeçalho e Filtros */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Swords className="w-5 h-5 text-orange-400" />
+          <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+            <Swords className="w-5 h-5 text-orange-400 shrink-0" />
             Histórico de Confrontos e Desafios
           </h3>
           <p className="text-xs text-slate-400 mt-1">
@@ -85,16 +85,16 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           {/* Busca por Nome */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Buscar atleta..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-orange-500"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-orange-500"
             />
           </div>
 
@@ -102,7 +102,7 @@ export const MatchHistory: React.FC<MatchHistoryProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-orange-500"
+            className="w-full sm:w-auto bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-orange-500 font-semibold"
           >
             <option value="all">Todos os Jogos</option>
             <option value="pending">Pendentes</option>
