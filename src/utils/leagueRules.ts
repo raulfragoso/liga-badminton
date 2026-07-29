@@ -164,8 +164,12 @@ export function processMatchOutcome(
     Object.assign(challenger, updatedChallenger);
     summaryMessage = `WO do Desafiante ${challenger.name}. ${challenged.name} foi declarado vencedor. ${challenger.name} recebeu punição de 2 semanas de suspensão para novos desafios.`;
   } else if (isSameLevel) {
-    winner.level += 1;
-    summaryMessage = `Vitória de ${winner.name} no mesmo nível! ${winner.name} subiu para o Nível ${winner.level}.`;
+    if (isChallengerWinner) {
+      winner.level += 1;
+      summaryMessage = `Vitória de ${winner.name} no mesmo nível! O desafiante subiu para o Nível ${winner.level}.`;
+    } else {
+      summaryMessage = `Vitória do desafiado ${winner.name} no mesmo nível. Níveis mantidos.`;
+    }
   } else if (isWinnerLowerLevel) {
     const oldWinnerLevel = winner.level;
     const oldLoserLevel = loser.level;
@@ -258,6 +262,7 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
       winnerState.wins += 1;
       loserState.losses += 1;
 
+      const isChallengerWinner = winnerId === ch.challengerId;
       const isSameLevel = winnerState.level === loserState.level;
       const isWinnerLowerLevel = winnerState.level < loserState.level;
 
@@ -267,7 +272,7 @@ export function recalculatePlayerStats(players: Player[], challenges: Challenge[
 
         winnerState.level = oldLoserLevel;
         loserState.level = Math.max(1, oldWinnerLevel);
-      } else if (isSameLevel) {
+      } else if (isSameLevel && isChallengerWinner) {
         winnerState.level += 1;
       }
     }
