@@ -92,6 +92,14 @@ export function validateNewChallenge(
     }
   }
 
+  // 5. Restrição de Desafio para Baixo: Só pode desafiar mesmo nível ou acima
+  if (challenged.level < challenger.level) {
+    return {
+      valid: false,
+      reason: `Não é permitido desafiar atletas de níveis inferiores. Você está no Nível ${challenger.level} e tentou desafiar para o Nível ${challenged.level}.`
+    };
+  }
+
   return { valid: true };
 }
 
