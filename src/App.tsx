@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Player, Challenge, LeagueSettings } from './types/league';
 import { INITIAL_SETTINGS } from './data/initialData';
 import { PyramidView } from './components/PyramidView';
+import { LevelListView } from './components/LevelListView';
 import { NewChallengeModal } from './components/NewChallengeModal';
 import { MatchResultModal } from './components/MatchResultModal';
 import { formatPhoneDisplay } from './utils/auth';
@@ -15,6 +16,7 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { getQuarterEndCountdown, recalculatePlayerStats, getLeagueLeader } from './utils/leagueRules';
 import { 
   Trophy, 
+  Layers,
   Swords, 
   Users, 
   BookOpen, 
@@ -89,7 +91,7 @@ export const App: React.FC = () => {
     return null; // Nenhum usuário logado automaticamente ao abrir
   });
 
-  const [activeTab, setActiveTab] = useState<'pyramid' | 'history' | 'players'>('pyramid');
+  const [activeTab, setActiveTab] = useState<'pyramid' | 'levels' | 'history' | 'players'>('pyramid');
 
   // Modais
   const [isNewChallengeModalOpen, setIsNewChallengeModalOpen] = useState(false);
@@ -444,14 +446,25 @@ export const App: React.FC = () => {
             <nav className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
               <button
                 onClick={() => setActiveTab('pyramid')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                   activeTab === 'pyramid'
                     ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Trophy className="w-4 h-4" />
-                Pirâmide Geral
+                Pirâmide
+              </button>
+              <button
+                onClick={() => setActiveTab('levels')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === 'levels'
+                    ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                Lista por Níveis
               </button>
               <button
                 onClick={() => setActiveTab('history')}
@@ -700,6 +713,22 @@ export const App: React.FC = () => {
                   onSelectChallengeToResolve={(challenge) => {
                     setSelectedChallengeToResolve(challenge);
                     setIsMatchResultModalOpen(true);
+                  }}
+                  onOpenPlayerDetails={(player) => {
+                    setSelectedPlayerToEdit(player);
+                    setIsEditPlayerModalOpen(true);
+                  }}
+                />
+              )}
+
+              {activeTab === 'levels' && (
+                <LevelListView
+                  players={players}
+                  challenges={challenges}
+                  currentUser={currentUser}
+                  onSelectPlayerToChallenge={(player) => {
+                    setPreselectedChallenger(player);
+                    setIsNewChallengeModalOpen(true);
                   }}
                   onOpenPlayerDetails={(player) => {
                     setSelectedPlayerToEdit(player);
