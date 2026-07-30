@@ -49,11 +49,28 @@ export const EditPlayerModal: React.FC = () => {
 
   if (!isOpen || !player) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     const cleanPhoneDigits = sanitizePhone(phone);
+    const oldPhoneDigits = sanitizePhone(player.phone || '');
+
+    // Sincroniza o cofre de senhas se o admin alterar o telefone (que atua como email de login)
+    if (isAdmin && cleanPhoneDigits && cleanPhoneDigits !== oldPhoneDigits) {
+      try {
+        const { supabase, formatPhoneToEmail } = await import('../utils/supabaseClient');
+        if (supabase) {
+           const { error } = await supabase.rpc('admin_update_player_email', { 
+             target_id: player.id, 
+             new_email: formatPhoneToEmail(cleanPhoneDigits) 
+           });
+           if (error) throw error;
+        }
+      } catch(err) {
+        alert("Erro ao alterar o acesso. O atleta ainda pode ter que logar com o número antigo.");
+      }
+    }
 
     const updatedPlayer = {
       ...player,
