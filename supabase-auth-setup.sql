@@ -111,17 +111,14 @@ RETURNS void AS $$
 DECLARE
     caller_role text;
 BEGIN
-    -- 1. Verifica se quem chamou a função é um Admin ativo
     SELECT role INTO caller_role FROM public.players WHERE id = auth.uid()::text;
-    
     IF caller_role != 'admin' THEN
         RAISE EXCEPTION 'Acesso negado. Apenas administradores podem redefinir senhas.';
     END IF;
 
-    -- 2. Atualiza a senha no schema auth do Supabase
-    -- Supabase usa o campo encrypted_password
     UPDATE auth.users 
-    SET encrypted_password = crypt(new_password, gen_salt('bf'))
+    SET encrypted_password = crypt(new_password, gen_salt('bf', 6)),
+        updated_at = now()
     WHERE id::text = target_id;
     
     IF NOT FOUND THEN
@@ -142,35 +139,60 @@ DECLARE
     caller_role text;
     new_user_id uuid;
 BEGIN
-    -- Verifica admin
     SELECT role INTO caller_role FROM public.players WHERE id = auth.uid()::text;
     IF caller_role != 'admin' THEN
         RAISE EXCEPTION 'Acesso negado. Apenas administradores podem criar atletas.';
     END IF;
 
-    -- Gera novo UUID
     new_user_id := uuid_generate_v4();
 
-    -- Insere no cofre auth.users
     INSERT INTO auth.users (
-      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_super_admin
+      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, 
+      raw_app_meta_data, raw_user_meta_data, is_super_admin,
+      confirmation_token, recovery_token, email_change_token_new, email_change, phone_change, phone_change_token, email_change_token_current
     ) VALUES (
       '00000000-0000-0000-0000-000000000000',
       new_user_id, 'authenticated', 'authenticated', new_email,
-      crypt(new_password, gen_salt('bf')),
+      crypt(new_password, gen_salt('bf', 6)),
       now(), now(), now(),
       '{"provider":"email","providers":["email"]}',
-      '{}',
-      false
+      '{"email_verified":true}',
+      false,
+      '', '', '', '', '', '', ''
     );
 
-    -- Insere identidade
     INSERT INTO auth.identities (
       provider_id, user_id, identity_data, provider, created_at, updated_at
     ) VALUES (
-      new_user_id::text, new_user_id, format('{"sub":"%s","email":"%s"}', new_user_id::text, new_email)::jsonb, 'email', now(), now()
+      new_user_id::text, new_user_id, format('{"sub":"%s","email":"%s","email_verified":true}', new_user_id::text, new_email)::jsonb, 'email', now(), now()
     );
 
     RETURN new_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ====================================================================================
+-- FUNÇÃO RPC PARA ATUALIZAR O EMAIL DE UM ATLETA (VINCULADO AO TELEFONE)
+-- ====================================================================================
+
+CREATE OR REPLACE FUNCTION admin_update_player_email(target_id text, new_email text)
+RETURNS void AS $$
+DECLARE
+    caller_role text;
+BEGIN
+    SELECT role INTO caller_role FROM public.players WHERE id = auth.uid()::text;
+    IF caller_role != 'admin' THEN
+        RAISE EXCEPTION 'Acesso negado.';
+    END IF;
+
+    UPDATE auth.users 
+    SET email = new_email,
+        updated_at = now()
+    WHERE id::text = target_id;
+
+    UPDATE auth.identities 
+    SET identity_data = format('{"sub":"%s","email":"%s","email_verified":true}', target_id, new_email)::jsonb,
+        updated_at = now()
+    WHERE user_id::text = target_id AND provider = 'email';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
