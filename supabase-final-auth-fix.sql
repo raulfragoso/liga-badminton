@@ -1,10 +1,11 @@
 -- ====================================================================================
--- SCRIPT DE CORREÇÃO: HASH DE SENHAS E SINCRONIZAÇÃO DE TELEFONE
--- O Supabase Auth (GoTrue) exige um custo de criptografia maior (fator 10) para aceitar as senhas.
--- Além disso, adiciona suporte para alterar o telefone de login.
+-- SCRIPT DEFINITIVO: ALINHAMENTO DE METADADOS E CRIPTOGRAFIA
+-- Identificamos que o Supabase deste projeto gerou o Admin com fator 6 (não 10) 
+-- e exige o metadado "email_verified": true para liberar o login!
+-- Este script faz a sincronia perfeita para que todos os atletas fiquem iguais ao Admin.
 -- ====================================================================================
 
--- 1. Atualiza a função de resetar senha para usar o fator 10 (gen_salt('bf', 10))
+-- 1. Corrige o RPC de Reset de Senha para usar o fator exato (6)
 CREATE OR REPLACE FUNCTION admin_reset_player_password(target_id text, new_password text)
 RETURNS void AS $$
 DECLARE
@@ -16,7 +17,7 @@ BEGIN
     END IF;
 
     UPDATE auth.users 
-    SET encrypted_password = crypt(new_password, gen_salt('bf', 10)),
+    SET encrypted_password = crypt(new_password, gen_salt('bf', 6)),
         updated_at = now()
     WHERE id::text = target_id;
 
@@ -26,7 +27,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. Atualiza a função de criar usuário com o fator 10
+-- 2. Corrige o RPC de Criação de Atletas para injetar os metadados corretos
 CREATE OR REPLACE FUNCTION admin_create_player_auth(new_email text, new_password text)
 RETURNS uuid AS $$
 DECLARE
@@ -45,48 +46,32 @@ BEGIN
     ) VALUES (
       '00000000-0000-0000-0000-000000000000',
       new_user_id, 'authenticated', 'authenticated', new_email,
-      crypt(new_password, gen_salt('bf', 10)),
+      crypt(new_password, gen_salt('bf', 6)),
       now(), now(), now(),
       '{"provider":"email","providers":["email"]}',
-      '{}',
+      '{"email_verified":true}',
       false
     );
 
     INSERT INTO auth.identities (
       provider_id, user_id, identity_data, provider, created_at, updated_at
     ) VALUES (
-      new_user_id::text, new_user_id, format('{"sub":"%s","email":"%s"}', new_user_id::text, new_email)::jsonb, 'email', now(), now()
+      new_user_id::text, new_user_id, format('{"sub":"%s","email":"%s","email_verified":true}', new_user_id::text, new_email)::jsonb, 'email', now(), now()
     );
 
     RETURN new_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. Nova função para alterar o telefone (email falso) no cofre, caso o admin edite o atleta
-CREATE OR REPLACE FUNCTION admin_update_player_email(target_id text, new_email text)
-RETURNS void AS $$
-DECLARE
-    caller_role text;
-BEGIN
-    SELECT role INTO caller_role FROM public.players WHERE id = auth.uid()::text;
-    IF caller_role != 'admin' THEN
-        RAISE EXCEPTION 'Acesso negado.';
-    END IF;
-
-    UPDATE auth.users 
-    SET email = new_email,
-        updated_at = now()
-    WHERE id::text = target_id;
-
-    UPDATE auth.identities 
-    SET identity_data = format('{"sub":"%s","email":"%s"}', target_id, new_email)::jsonb,
-        updated_at = now()
-    WHERE user_id::text = target_id AND provider = 'email';
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 4. Corrige as senhas de todos os atletas antigos para '123456' usando o fator correto (10)
--- (Pula o admin para não deslogar você)
+-- 3. Aplica a correção retroativa em TODOS os atletas que falharam
+-- Modifica a senha padrão para '123456' com fator 6 e insere os metadados vitais
 UPDATE auth.users 
-SET encrypted_password = crypt('123456', gen_salt('bf', 10))
+SET 
+    encrypted_password = crypt('123456', gen_salt('bf', 6)),
+    raw_user_meta_data = '{"email_verified":true}'::jsonb
 WHERE email != 'admin@ligabadminton.com';
+
+-- 4. Alinha também as identidades, que o GoTrue usa para validar
+UPDATE auth.identities
+SET identity_data = jsonb_build_object('sub', user_id::text, 'email', (identity_data->>'email'), 'email_verified', true)
+WHERE provider = 'email' AND (identity_data->>'email') != 'admin@ligabadminton.com';
