@@ -18,37 +18,71 @@ export const PlayerManagementModal: React.FC = () => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     // Sanitiza o telefone para salvar estritamente como string com os 11 dígitos numéricos
     const cleanPhoneDigits = sanitizePhone(phone);
+    if (!cleanPhoneDigits) {
+      alert("Telefone inválido.");
+      return;
+    }
 
-    // Todos os atletas ingressam inicialmente no Nível 1
-    const nextRank = players.length + 1;
     const defaultPhonePass = getDefaultPasswordFromPhone(cleanPhoneDigits);
     const generatedPass = customPassword.trim() || defaultPhonePass;
 
-    const newPlayer: Player = {
-      id: `p-${Date.now()}`,
-      name: name.trim(),
-      rank: nextRank,
-      level: 1, // Novo atleta ingressa sempre no Nível 1 (mínimo)
-      phone: cleanPhoneDigits || undefined,
-      password: generatedPass,
-      role: 'athlete',
-      wins: 0,
-      losses: 0,
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0]
-    };
+    try {
+      let newPlayerId = `p-${Date.now()}`;
 
-    handleAddPlayer(newPlayer);
-    setName('');
-    setPhone('');
-    setCustomPassword('');
-    onClose();
+      // Tenta criar na nuvem primeiro
+      const { supabase, formatPhoneToEmail, isSupabaseConfigured } = await import('../utils/supabaseClient');
+      
+      if (isSupabaseConfigured && supabase) {
+        const fakeEmail = formatPhoneToEmail(cleanPhoneDigits);
+        
+        // Usa o RPC recém criado para o Admin injetar um usuário no Auth sem deslogar
+        const { data: newUuid, error } = await supabase.rpc('admin_create_player_auth', { 
+          new_email: fakeEmail, 
+          new_password: generatedPass 
+        });
+        
+        if (error) {
+          alert(`Erro ao criar acesso seguro: ${error.message}`);
+          return;
+        }
+        if (newUuid) {
+          newPlayerId = newUuid;
+        }
+      }
+
+      // Todos os atletas ingressam inicialmente no Nível 1
+      const nextRank = players.length + 1;
+
+      const newPlayer: Player = {
+        id: newPlayerId,
+        name: name.trim(),
+        rank: nextRank,
+        level: 1, 
+        phone: cleanPhoneDigits,
+        role: 'athlete',
+        wins: 0,
+        losses: 0,
+        status: 'active',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+
+      handleAddPlayer(newPlayer);
+      setName('');
+      setPhone('');
+      setCustomPassword('');
+      onClose();
+      
+      alert(`Atleta criado com sucesso!\nLogin: ${cleanPhoneDigits}\nSenha: ${generatedPass}`);
+    } catch (err) {
+      console.error(err);
+      alert('Ocorreu um erro ao registrar o atleta.');
+    }
   };
 
   const defaultPhonePassPreview = phone ? getDefaultPasswordFromPhone(phone) : '4 últimos dígitos do fone';

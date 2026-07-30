@@ -23,7 +23,6 @@ export const EditPlayerModal: React.FC = () => {
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('athlete');
   const [wins, setWins] = useState(0);
   const [losses, setLosses] = useState(0);
@@ -35,7 +34,6 @@ export const EditPlayerModal: React.FC = () => {
     if (player) {
       setName(player.name || '');
       setPhone(formatPhoneDisplay(player.phone || ''));
-      setPassword(player.password || '123456');
       setRole(player.role || 'athlete');
       setWins(player.wins || 0);
       setLosses(player.losses || 0);
@@ -51,11 +49,6 @@ export const EditPlayerModal: React.FC = () => {
 
   if (!isOpen || !player) return null;
 
-  const handleGeneratePassword = () => {
-    const newPass = generateRandomPassword();
-    setPassword(newPass);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -66,7 +59,6 @@ export const EditPlayerModal: React.FC = () => {
       ...player,
       name: name.trim(),
       phone: cleanPhoneDigits || undefined,
-      password: password.trim() || '123456',
       role,
       level: player.level || 1,
       wins: Number(wins),
@@ -173,24 +165,43 @@ export const EditPlayerModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Senha de Acesso */}
-          <div className="relative">
-            <Input
-              label="Senha de Acesso"
-              leftIcon={<Lock className="w-4 h-4" />}
-              type="text"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="font-mono"
-            />
-            <button
-              type="button"
-              onClick={handleGeneratePassword}
-              className="absolute right-0 top-0 text-[11px] text-orange-400 hover:text-orange-300 flex items-center gap-1 font-normal underline z-10"
-            >
-              <Key className="w-3 h-3" /> Gerar Nova Senha
-            </button>
+          {/* Acesso (Supabase Auth) */}
+          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
+              <Lock className="w-4 h-4 text-slate-400" />
+              Segurança de Acesso
+            </div>
+            
+            {isAdmin ? (
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[11px] text-slate-400">
+                  As senhas são protegidas por criptografia do Supabase. Como admin, você pode gerar uma nova senha temporária para este atleta.
+                </p>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const newPass = generateRandomPassword();
+                    try {
+                      const { supabase } = await import('../utils/supabaseClient');
+                      if (supabase) {
+                        const { error } = await supabase.rpc('admin_reset_player_password', { target_id: player.id, new_password: newPass });
+                        if (error) throw error;
+                        alert(`Senha redefinida com sucesso!\n\nEnvie a seguinte senha para o atleta via WhatsApp:\n\n${newPass}\n\n(Anote-a, esta mensagem não será exibida novamente)`);
+                      }
+                    } catch (err) {
+                      alert('Erro ao redefinir a senha no cofre do Supabase. Verifique as permissões.');
+                    }
+                  }}
+                  className="bg-orange-600/20 text-orange-400 border border-orange-500/30 hover:bg-orange-600/30 px-3 py-1.5 h-auto text-[11px] whitespace-nowrap"
+                >
+                  <Key className="w-3.5 h-3.5 mr-1" /> Gerar Nova Senha
+                </Button>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400">
+                Sua senha é protegida por criptografia de ponta a ponta. Se você esquecê-la ou precisar alterá-la, contate o administrador no WhatsApp.
+              </p>
+            )}
           </div>
 
           {/* Vitórias e Derrotas */}

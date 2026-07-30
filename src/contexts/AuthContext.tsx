@@ -31,12 +31,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentUser]);
 
+  // Sincroniza estado de autenticação real com o Supabase
+  useEffect(() => {
+    import('../utils/supabaseClient').then(({ supabase }) => {
+      if (!supabase) return;
+
+      // Escuta mudanças (ex: token expirou, logout em outra aba)
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          setCurrentUser(null);
+        }
+      });
+
+      // Validação inicial
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          setCurrentUser(null);
+        }
+      });
+
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    });
+  }, []);
+
   const handleLoginSuccess = (user: Player) => {
     setCurrentUser(user);
     showToast('Login Realizado', `Bem-vindo(a) de volta, ${user.name}!`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const { supabase } = await import('../utils/supabaseClient');
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setCurrentUser(null);
     showToast('Sessão Encerrada', 'Você saiu da sua conta com sucesso.', 'warning');
   };

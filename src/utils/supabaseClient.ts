@@ -21,7 +21,6 @@ function mapPlayerToDb(p: Player) {
     rank: p.rank,
     level: p.level || 1,
     phone: p.phone || null,
-    password: p.password || '123',
     role: p.role || 'athlete',
     wins: p.wins || 0,
     losses: p.losses || 0,
@@ -43,7 +42,6 @@ function mapDbToPlayer(row: any): Player {
     rank: row.rank,
     level: row.level || 1,
     phone: row.phone || undefined,
-    password: row.password || '123',
     role: row.role || 'athlete',
     wins: row.wins || 0,
     losses: row.losses || 0,
@@ -108,6 +106,14 @@ function mapDbToChallenge(row: any): Challenge {
     resultSummary: row.result_summary || undefined,
     notes: row.notes || undefined
   };
+}
+
+// --- FUNÇÕES DE AUTENTICAÇÃO (SUPABASE AUTH) ---
+
+export function formatPhoneToEmail(phone: string): string {
+  // Limpa tudo que não for número e anexa o domínio falso
+  const cleanNumber = phone.replace(/\D/g, '');
+  return `${cleanNumber}@ligabadminton.com`;
 }
 
 // --- FUNÇÕES DE BUSCA E PERSISTÊNCIA NA NUVEM ---

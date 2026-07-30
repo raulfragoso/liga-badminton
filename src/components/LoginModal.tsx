@@ -3,14 +3,14 @@ import { Player } from '../types/league';
 import { validateAndAuthenticateUser, formatPhoneMask } from '../utils/auth';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { fetchPlayersFromSupabase, isSupabaseConfigured } from '../utils/supabaseClient';
+import { isSupabaseConfigured } from '../utils/supabaseClient';
 import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { useLeague } from '../contexts/LeagueContext';
 import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export const LoginModal: React.FC = () => {
-  const { players, setPlayers } = useLeague();
+  const { players } = useLeague();
   const { isLoginModalOpen: isOpen, setIsLoginModalOpen } = useUI();
   const { handleLoginSuccess } = useAuth();
 
@@ -28,46 +28,65 @@ export const LoginModal: React.FC = () => {
     setErrorMessage('');
     setIsSubmitting(true);
 
-    let currentPlayers = players;
-    let authResult = validateAndAuthenticateUser(currentPlayers, phone, password);
-
-    // Se falhar a autenticação local, busca atletas em tempo real direto no Supabase
-    if (!authResult.success && isSupabaseConfigured) {
+    if (isSupabaseConfigured) {
       try {
-        const cloudPlayers = await fetchPlayersFromSupabase();
-        if (cloudPlayers && cloudPlayers.length > 0) {
-          currentPlayers = cloudPlayers;
-          setPlayers(cloudPlayers);
-          authResult = validateAndAuthenticateUser(currentPlayers, phone, password);
+        const { supabase, formatPhoneToEmail } = await import('../utils/supabaseClient');
+        if (!supabase) throw new Error('Supabase indisponível');
+
+        // Tratamento especial para o "admin" raiz, se houver
+        const email = phone.toLowerCase() === 'admin' ? 'admin@ligabadminton.com' : formatPhoneToEmail(phone);
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          setErrorMessage('Telefone ou senha incorretos.');
+        } else if (data.session?.user) {
+          // Busca o perfil público para injetar no Contexto
+          const { data: profile } = await supabase.from('players').select('*').eq('id', data.session.user.id).single();
+          
+          if (profile) {
+            handleLoginSuccess({
+              id: profile.id,
+              name: profile.name,
+              rank: profile.rank,
+              level: profile.level,
+              phone: profile.phone || undefined,
+              role: profile.role,
+              wins: profile.wins,
+              losses: profile.losses,
+              status: profile.status,
+              createdAt: profile.created_at || new Date().toISOString().split('T')[0]
+            });
+            onClose();
+          } else {
+            setErrorMessage('Perfil do atleta não encontrado.');
+          }
         }
       } catch (err) {
-        console.error('Erro ao consultar Supabase durante o login:', err);
+        setErrorMessage('Erro de conexão com o servidor.');
+      }
+    } else {
+      // Fallback local se não tiver nuvem
+      let authResult = validateAndAuthenticateUser(players, phone, password);
+      if (authResult.success && authResult.user) {
+        handleLoginSuccess(authResult.user);
+        onClose();
+      } else {
+        setErrorMessage(authResult.errorMessage || 'Falha na autenticação local.');
       }
     }
 
     setIsSubmitting(false);
-
-    if (authResult.success && authResult.user) {
-      handleLoginSuccess(authResult.user);
-      onClose();
-    } else {
-      setErrorMessage(authResult.errorMessage || 'Falha na autenticação. Verifique os dados informados.');
-    }
   };
 
-  const handleQuickLogin = (player: Player) => {
-    const adminEnvPass = import.meta.env.VITE_ADMIN_PASSWORD || '';
-    const adminEnvPhone = import.meta.env.VITE_ADMIN_PHONE || 'admin';
-    const userPass = player.role === 'admin' ? adminEnvPass : (player.password || '1234');
-    setPhone(player.phone || (player.role === 'admin' ? adminEnvPhone : ''));
-    setPassword(userPass);
-    setErrorMessage('');
-
-    const authResult = validateAndAuthenticateUser(players, player.phone || '', userPass);
-    if (authResult.success && authResult.user) {
-      handleLoginSuccess(authResult.user);
-      onClose();
-    }
+  const handleQuickLogin = async (player: Player) => {
+    // Para simplificar a transição, preenche os campos para o usuário digitar a senha
+    setPhone(player.phone || (player.role === 'admin' ? 'admin' : ''));
+    setPassword('');
+    setErrorMessage('Por favor, digite sua senha de acesso.');
   };
 
   const adminPlayer = players.find(p => p.role === 'admin');
@@ -149,13 +168,23 @@ export const LoginModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer pointer-events-auto"
-                title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-300"
+                tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             }
           />
+          
+          <div className="flex justify-end pt-1">
+            <button 
+              type="button" 
+              onClick={() => alert("Como não utilizamos e-mail na Liga, por favor, envie uma mensagem no WhatsApp para o Administrador solicitando uma nova senha.")}
+              className="text-xs text-orange-400/80 hover:text-orange-400 transition-colors font-medium"
+            >
+              Esqueci minha senha
+            </button>
+          </div>
 
           <Button
             type="submit"
