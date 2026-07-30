@@ -20,8 +20,8 @@ import { Calendar, Award } from 'lucide-react';
 import { useLeague } from './contexts/LeagueContext';
 import { useUI } from './contexts/UIContext';
 import { useAuth } from './contexts/AuthContext';
-import { Shuttlecock } from './ui/Shuttlecock';
-import { Button } from './ui/Button';
+import { Shuttlecock } from './components/ui/Shuttlecock';
+import { Button } from './components/ui/Button';
 import { Lock } from 'lucide-react';
 
 export const App: React.FC = () => {
