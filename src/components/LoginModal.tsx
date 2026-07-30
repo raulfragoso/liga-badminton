@@ -34,7 +34,8 @@ export const LoginModal: React.FC = () => {
         if (!supabase) throw new Error('Supabase indisponível');
 
         // Tratamento especial para o "admin" raiz, se houver
-        const email = phone.toLowerCase() === 'admin' ? 'admin@ligabadminton.com' : formatPhoneToEmail(phone);
+        const cleanPhone = phone.trim().toLowerCase();
+        const email = cleanPhone === 'admin' ? 'admin@ligabadminton.com' : formatPhoneToEmail(phone);
         
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
