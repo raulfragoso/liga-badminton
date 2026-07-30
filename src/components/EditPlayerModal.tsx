@@ -203,7 +203,19 @@ export const EditPlayerModal: React.FC = () => {
                       if (supabase) {
                         const { error } = await supabase.rpc('admin_reset_player_password', { target_id: player.id, new_password: newPass });
                         if (error) throw error;
-                        alert(`Senha redefinida com sucesso!\n\nEnvie a seguinte senha para o atleta via WhatsApp:\n\n${newPass}\n\n(Anote-a, esta mensagem não será exibida novamente)`);
+                        
+                        const wantsToSend = window.confirm(`Senha redefinida com sucesso!\n\nNova senha: ${newPass}\n\nDeseja enviar esta senha agora por WhatsApp para o atleta?`);
+                        if (wantsToSend) {
+                          const cleanPhone = (player.phone || '').replace(/\D/g, '');
+                          if (cleanPhone) {
+                            // Se o número tiver 10 ou 11 dígitos (padrão Brasil sem código do país), adiciona o 55
+                            const waPhone = cleanPhone.length <= 11 ? `55${cleanPhone}` : cleanPhone;
+                            const msg = `Olá *${player.name}*, sua senha de acesso à Liga de Badminton foi redefinida.\nSua nova senha provisória é: *${newPass}*\n\nAcesse o sistema e teste seu login!`;
+                            window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          } else {
+                            alert(`O atleta não possui um telefone válido cadastrado.\n\nAnote a senha e envie manualmente: ${newPass}`);
+                          }
+                        }
                       }
                     } catch (err) {
                       alert('Erro ao redefinir a senha no cofre do Supabase. Verifique as permissões.');
