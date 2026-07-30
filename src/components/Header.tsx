@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { NavLink } from 'react-router-dom';
+import { Shuttlecock } from './ui/Shuttlecock';
 
 import { useLeague } from '../contexts/LeagueContext';
 import { useUI } from '../contexts/UIContext';
@@ -48,7 +49,10 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-base font-black tracking-tight text-white flex items-center gap-2">
-                Liga de Badminton
+                <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
+                  LIGA DE BADMINTON
+                </span>
+                <Shuttlecock animate="float" className="w-4 h-4 text-orange-400" />
               </h1>
               <p className="text-[11px] text-slate-400 hidden sm:block">Complexo Esportivo Maylson Campos</p>
             </div>

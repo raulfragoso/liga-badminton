@@ -4,7 +4,8 @@ import { validateAndAuthenticateUser, formatPhoneMask } from '../utils/auth';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { isSupabaseConfigured } from '../utils/supabaseClient';
-import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { LogIn, X, Lock, ShieldCheck, User, Sparkles, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Shuttlecock } from './ui/Shuttlecock';
 import { useLeague } from '../contexts/LeagueContext';
 import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -196,7 +197,7 @@ export const LoginModal: React.FC = () => {
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Shuttlecock animate="spin-slow" className="w-4 h-4" />
                 <span>Verificando no Supabase...</span>
               </>
             ) : (

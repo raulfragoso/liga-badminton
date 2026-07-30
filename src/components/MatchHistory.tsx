@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Challenge } from '../types/league';
 import { sendWhatsappNotification } from '../utils/notifications';
 import { Swords, Calendar, CheckCircle2, Clock, ShieldAlert, Search, Pencil, MessageSquare, Trash2 } from 'lucide-react';
+import { Shuttlecock } from './ui/Shuttlecock';
 import { useLeague } from '../contexts/LeagueContext';
 import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -104,8 +105,9 @@ export const MatchHistory: React.FC = () => {
 
       <div className="space-y-3">
         {filteredChallenges.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 text-sm">
-            Nenhum desafio encontrado para os filtros selecionados.
+          <div className="flex flex-col items-center justify-center py-10 text-slate-400 text-sm">
+            <Shuttlecock animate="float" className="w-12 h-12 text-slate-700 mb-3" />
+            <p>Nenhum desafio encontrado para os filtros selecionados.</p>
           </div>
         ) : (
           filteredChallenges.map((challenge) => (
