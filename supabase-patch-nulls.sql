@@ -14,9 +14,9 @@ SET
   email_change = COALESCE(email_change, ''),
   phone_change = COALESCE(phone_change, ''),
   phone_change_token = COALESCE(phone_change_token, ''),
-  email_change_token_current = COALESCE(email_change_token_current, ''),
-  phone = COALESCE(phone, '')
+  email_change_token_current = COALESCE(email_change_token_current, '')
 WHERE email != 'admin@ligabadminton.com';
+
 
 -- 2. Atualiza o RPC de criação para já inserir os campos como strings vazias no futuro
 CREATE OR REPLACE FUNCTION admin_create_player_auth(new_email text, new_password text)
@@ -35,7 +35,7 @@ BEGIN
     INSERT INTO auth.users (
       instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, 
       raw_app_meta_data, raw_user_meta_data, is_super_admin,
-      confirmation_token, recovery_token, email_change_token_new, email_change, phone_change, phone_change_token, email_change_token_current, phone
+      confirmation_token, recovery_token, email_change_token_new, email_change, phone_change, phone_change_token, email_change_token_current
     ) VALUES (
       '00000000-0000-0000-0000-000000000000',
       new_user_id, 'authenticated', 'authenticated', new_email,
@@ -44,7 +44,7 @@ BEGIN
       '{"provider":"email","providers":["email"]}',
       '{"email_verified":true}',
       false,
-      '', '', '', '', '', '', '', ''
+      '', '', '', '', '', '', ''
     );
 
     INSERT INTO auth.identities (
