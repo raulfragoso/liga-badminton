@@ -43,7 +43,7 @@ export const LoginModal: React.FC = () => {
         });
 
         if (error) {
-          setErrorMessage('Telefone ou senha incorretos.');
+          setErrorMessage(`Erro Supabase: ${error.message} (Email: ${email})`);
         } else if (data.session?.user) {
           // Busca o perfil público para injetar no Contexto
           const { data: profile } = await supabase.from('players').select('*').eq('id', data.session.user.id).single();
