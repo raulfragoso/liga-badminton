@@ -62,12 +62,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleLogout = async () => {
-    const { supabase } = await import('../utils/supabaseClient');
-    if (supabase) {
-      await supabase.auth.signOut();
+    try {
+      const { supabase } = await import('../utils/supabaseClient');
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch (err) {
+      console.warn('Erro silencioso no Supabase signOut:', err);
+    } finally {
+      // Garante que o estado local e o cache sejam destruídos independentemente do Supabase
+      setCurrentUser(null);
+      localStorage.removeItem('badminton_current_user');
+      showToast('Sessão Encerrada', 'Você saiu da sua conta com sucesso.', 'warning');
     }
-    setCurrentUser(null);
-    showToast('Sessão Encerrada', 'Você saiu da sua conta com sucesso.', 'warning');
   };
 
   return (
