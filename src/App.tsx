@@ -19,13 +19,62 @@ import { getLeagueLeader } from './utils/leagueRules';
 import { Calendar, Award } from 'lucide-react';
 import { useLeague } from './contexts/LeagueContext';
 import { useUI } from './contexts/UIContext';
+import { useAuth } from './contexts/AuthContext';
+import { Shuttlecock } from './ui/Shuttlecock';
+import { Button } from './ui/Button';
+import { Lock } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { players, challenges, settings } = useLeague();
-  const { toastMessage } = useUI();
+  const { toastMessage, setIsLoginModalOpen } = useUI();
+  const { currentUser } = useAuth();
   
   const leagueLeader = getLeagueLeader(players);
   const totalMatches = challenges.filter(c => c.status === 'completed').length;
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-orange-500/30 flex flex-col relative overflow-hidden">
+        <PWAInstallPrompt />
+        {toastMessage && <Toast message={toastMessage} />}
+        
+        {/* Background decorations */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-500/10 to-transparent blur-3xl opacity-50 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/5 to-transparent blur-3xl opacity-50 pointer-events-none" />
+
+        <header className="p-6 relative z-10 flex justify-between items-center max-w-7xl mx-auto w-full border-b border-slate-800/40">
+           <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center border border-orange-500/60 shadow-lg shadow-orange-500/20 overflow-hidden p-0.5 shrink-0">
+                <img src="/logo-maylson.png" alt="Logo" className="w-full h-full object-contain rounded-lg" />
+              </div>
+              <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">LIGA DE BADMINTON</span>
+                <Shuttlecock animate="float" className="w-5 h-5 text-orange-400 hidden sm:block" />
+              </h1>
+           </div>
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 text-center max-w-2xl mx-auto mt-10 md:mt-0">
+          <div className="p-4 bg-orange-500/10 rounded-full border border-orange-500/20 mb-8 shadow-inner shadow-orange-500/10">
+            <Lock className="w-12 h-12 text-orange-400" />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Área Restrita</h2>
+          <p className="text-slate-400 text-base md:text-lg mb-10 leading-relaxed max-w-lg">
+            O acesso à pirâmide, histórico de jogos e perfis é exclusivo para atletas registrados. Faça login para continuar.
+          </p>
+          <Button 
+            size="lg" 
+            onClick={() => setIsLoginModalOpen(true)} 
+            className="text-base md:text-lg px-8 py-6 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 shadow-xl shadow-orange-900/20 rounded-2xl w-full sm:w-auto"
+          >
+            Acessar o Sistema
+          </Button>
+        </main>
+        
+        <LoginModal />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-orange-500/30">
