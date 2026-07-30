@@ -113,7 +113,7 @@ export const MatchResultModal: React.FC = () => {
     const completedChallenge: Challenge = {
       ...challenge,
       status: overrideStatus,
-      completedDate: new Date().toISOString().split('T')[0],
+      completedDate: new Date().toISOString(),
       games: finalGames,
       winnerId,
       resultSummary: summaryMessage

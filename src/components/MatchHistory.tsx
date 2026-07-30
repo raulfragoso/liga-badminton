@@ -133,9 +133,21 @@ export const MatchHistory: React.FC = () => {
                   </div>
 
                   {challenge.resultSummary ? (
-                    <p className="text-xs text-slate-300 font-medium bg-slate-950/40 px-2 py-1 rounded border border-slate-800/60">
-                      {challenge.resultSummary}
-                    </p>
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-slate-300 font-medium bg-slate-950/40 px-2 py-1 rounded border border-slate-800/60">
+                        {challenge.resultSummary}
+                      </p>
+                      {challenge.completedDate && (
+                        <p className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 opacity-70" />
+                          Concluído em: {
+                            challenge.completedDate.includes('T') 
+                              ? new Date(challenge.completedDate).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                              : new Date(challenge.completedDate + 'T12:00:00Z').toLocaleDateString('pt-BR')
+                          }
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-xs text-slate-400 flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-slate-500" />
