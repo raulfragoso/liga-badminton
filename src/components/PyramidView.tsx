@@ -31,7 +31,7 @@ export const PyramidView: React.FC = () => {
           label: 'Suspenso (2 sem)',
           badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
           icon: <ShieldAlert className="w-3.5 h-3.5" />,
-          canChallenge: false,
+          canBeChallenged: false,
           tooltip: player.cooldownReason || 'Em punição de 2 semanas'
         };
       }
@@ -47,8 +47,8 @@ export const PyramidView: React.FC = () => {
         label: 'Já desafiou nesta sem.',
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         icon: <AlertCircle className="w-3.5 h-3.5" />,
-        canChallenge: false,
-        tooltip: 'Já realizou o desafio semanal'
+        canBeChallenged: true, // Ele não pode desafiar, mas PODE ser desafiado!
+        tooltip: 'Já realizou o desafio como desafiante'
       };
     }
 
@@ -56,7 +56,7 @@ export const PyramidView: React.FC = () => {
       label: 'Disponível',
       badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-      canChallenge: true,
+      canBeChallenged: true,
       tooltip: 'Pronto para novos desafios'
     };
   };
@@ -212,13 +212,13 @@ export const PyramidView: React.FC = () => {
                           </button>
                         ) : (
                           <button
-                            disabled={!status.canChallenge}
+                            disabled={!status.canBeChallenged}
                             onClick={() => {
                               setPreselectedChallenged(player);
                               setIsNewChallengeModalOpen(true);
                             }}
                             className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                              status.canChallenge
+                              status.canBeChallenged
                                 ? 'bg-orange-600/20 hover:bg-orange-600 text-orange-300 hover:text-white border border-orange-500/40 shadow-sm'
                                 : 'bg-slate-800/50 text-slate-500 cursor-not-allowed border border-slate-800'
                             }`}
