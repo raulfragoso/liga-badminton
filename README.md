@@ -24,14 +24,19 @@ Aplicação Web Progressiva (PWA) moderna para gestão, acompanhamento e ranquea
 - **Líder Atual da Liga:** Apresentado no topo do painel principal.
 - **Desempate por Saldo de Pontos:** Em caso de empate no número de vitórias (*jogos ganhos*), o critério de desempate é o **saldo de pontos acumulados** nos sets disputados (`pontos marcados - pontos sofridos`).
 
-### 🔐 Autenticação Privada e Segura
-- **Acesso Restrito:** As estatísticas, pirâmide e histórico de partidas são visíveis exclusivamente após autenticação.
-- **Login Tolerante para Celulares:** Autenticação via telefone e senha padrão dos 4 últimos dígitos (com suporte inteligente a DDD, DDI `+55` e teclados móveis).
-- **Gestão de Administrador:** Painel e permissões exclusivas para administradores gerenciarem atletas, placares e períodos da liga.
+### 🔐 Autenticação Privada e Segura (Supabase Auth)
+- **Área Restrita (Lock Screen):** O sistema possui um bloqueio rígido que impede a visualização da pirâmide e das estatísticas para usuários não logados.
+- **Login Seguro via GoTrue:** Senhas criptografadas nativamente com `bcrypt` e validação pelo próprio servidor do Supabase.
+- **Geração de Senha Aleatória:** Administradores podem gerar novas senhas provisórias seguras com apenas um clique.
+- **Integração com WhatsApp:** Envio automatizado da nova senha provisória diretamente para o WhatsApp do atleta.
 
 ### 📱 Notificações via WhatsApp
 - **Envio de Desafios:** Geração instantânea de mensagens formatadas no WhatsApp para notificar atletas desafiados.
 - **Link Oficial Integrado:** Link direto para acesso rápido à liga (`https://liga-badminton-six.vercel.app/`).
+
+### 🏸 UX/UI e Design Premium
+- **Peteca Animada (Shuttlecock SVG):** Design visual rico com vetorizações animadas (flutuando e girando) em telas de carregamento, bloqueio e estados vazios.
+- **Histórico Preciso:** O histórico de partidas exibe não apenas a data, mas a hora exata da conclusão do desafio.
 
 ### ☁️ Sincronização em Nuvem em Tempo Real (Supabase)
 - **Supabase Realtime:** Atualizações instantâneas entre computadores e celulares sem necessidade de atualizar a página.
@@ -55,29 +60,27 @@ Aplicação Web Progressiva (PWA) moderna para gestão, acompanhamento e ranquea
 
 ## ⚙️ Variáveis de Ambiente
 
-Para o funcionamento correto da autenticação de Administrador e sincronização com o banco Supabase, adicione as seguintes variáveis no seu arquivo `.env` local ou no painel da **Vercel**:
+Para o funcionamento correto da sincronização com o banco Supabase, adicione as seguintes variáveis no seu arquivo `.env` local ou no painel da **Vercel**:
 
 ```env
-# Administrador da Liga
-VITE_ADMIN_PHONE=admin
-VITE_ADMIN_PASSWORD=sua-senha-admin-aqui
-
 # Integração Supabase
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-chave-anonima-supabase
 ```
+*(As antigas variáveis `VITE_ADMIN_PHONE` e `VITE_ADMIN_PASSWORD` não são mais necessárias devido à forte integração com o sistema nativo Supabase Auth).*
 
 ---
 
-## 🗄️ Estrutura do Banco de Dados (Supabase SQL)
+## 🗄️ Estrutura do Banco de Dados e Auth (Supabase SQL)
 
-Para criar a estrutura de tabelas necessária no seu projeto do Supabase, execute o script SQL disponibilizado em [`supabase-setup.sql`](./supabase-setup.sql) no **SQL Editor** do Supabase:
+Para criar toda a estrutura de tabelas, regras de segurança RLS (Row Level Security) e injeção do sistema de autenticação, execute o script consolidado disponibilizado em [`supabase-auth-setup.sql`](./supabase-auth-setup.sql) no **SQL Editor** do Supabase:
 
 ```sql
--- Criar tabelas da Liga de Badminton:
--- 1. public.players (Atletas)
--- 2. public.challenges (Desafios e Placares)
--- 3. public.league_settings (Datas e Período da Liga)
+-- O script configura automaticamente:
+-- 1. Criação do perfil master (Administrador) na auth.users
+-- 2. Tabela de Atletas (public.players) com sincronia RLS
+-- 3. Tabelas de Desafios e Settings
+-- 4. Funções (RPC) seguras para geração e redefinição de senhas
 ```
 
 ---
